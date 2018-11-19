@@ -19,7 +19,90 @@ if image is not None:
     # Wait for any key to be pressed
     cv2.waitKey(0)
 
+## Isolating parts within a Green Color Range
+
+def isolateColor():
+    img = cv2.imread("leafdemo.jpg")
+    hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+    lowerGreen = np.array([0,100,0])
+    upperGreen = np.array([120,255,127])
+    mask = cv2.inRange(hsv, lowerGreen, upperGreen)
+    cv2.waitKey(0)
+    res = cv2.bitwise_and(img,img,mask=mask)
+    cv2.imshow("only one color", res)
+    cv2.waitKey(0)
+    
+isolateColor()
+
+## Webscraping Leaf Information
+
+leafData = "https://gardenerdy.com/different-kinds-of-leaves"
+
+website = requests.get(leafData)
+source = website.text
+parser = BeautifulSoup(source,'html.parser')
+
+leafNames = []
+leafDescrip = []
+leafDict = {}
+
+#finds all the types of leaves and adds their names to a list
+count = 0
+for leafDes in parser.find_all("span"):
+    leafDes = leafDes.text
+   
+    wordcount = 0
+    for word in leafDes.split(" "):
+        wordcount +=1
+
+    if ("leaf" in leafDes or "leaves" in leafDes or "Leaf" in leafDes or "Leaves" in leafDes) and wordcount <=4 and "Types" not in leafDes and leafDes[0].isupper() and wordcount >1:
+        leafNames.append(leafDes)
+
+#finds all the descriptions of the leaves and adds the description to the list
+descrip = ""
+for i in range(len(parser.find_all("span"))):
+    
+    if i != 17 and i>8 and i<33 and parser.find_all("span")[i].text not in leafNames:
+        descrip += parser.find_all("span")[i].text
+        
+    if parser.find_all("span")[i].text in leafNames :
+        leafDescrip.append(descrip)
+        descrip = ""
+
+leafDescrip.append(descrip)
+
+#makes sure to get rid of any empty items
+for i in range(len(leafDescrip)-1,-1,-1):
+    if leafDescrip[i] == "":
+        leafDescrip.pop(i)
+    
+#correlate each description to name
+for i in range(len(leafNames)):
+    leafDict[leafNames[i]] = leafDescrip[i]
+    
+
+links = []
+#find all of the image links
+for i in range(len(parser.find_all("img"))):
+    if "https:" in parser.find_all("img")[i]["src"] and i>2 and i<12:
+        links.append(parser.find_all("img")[i]["src"])
+        
+
+#add the links to the leaf dictionary
+i = 0
+for key in leafDict:
+    desc = leafDict[key]
+    leafDict[key] = [desc, links[i]]
+    i+=1
+    
+# print(leafDict)
+##
+"""Tech Demo Ends"""
+##
+
 ## Countouring parts within a Green Color Range
+# Trying to outline certain green colored parts
+#
 # def greenOutline(rlow,rhigh,glow,ghigh,blow,bhigh):
 #     img = cv2.imread('leafdemo.jpg', 1)
 #     
@@ -66,70 +149,106 @@ if image is not None:
 # 
 # greenOutline(0,225,0,200,0,225)
 
-## Isolating parts within a Green Color Range
+## Return families of trees
 
-def isolateColor():
-    img = cv2.imread("leafdemo.jpg")
-    cv2.imshow("cool",img)
-    cv2.waitKey(0)
-    hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-    lowerGreen = np.array([0,100,0])
-    upperGreen = np.array([120,255,127])
-    mask = cv2.inRange(hsv, lowerGreen, upperGreen)
-    cv2.waitKey(0)
-    res = cv2.bitwise_and(img,img,mask=mask)
-    cv2.imshow("only one color", res)
-    cv2.waitKey(0)
-    
-isolateColor()
+#creating reference tree database
+#just trees in northeast region
 
-## Webscraping Leaf Information
+leafDataNorthEast = "http://leafsnap.com/species/"
 
-leafData = "https://gardenerdy.com/different-kinds-of-leaves"
-
-website = requests.get(leafData)
+website = requests.get(leafDataNorthEast)
 source = website.text
 parser = BeautifulSoup(source,'html.parser')
 
-leafNames = []
-leafDescrip = []
-leafDict = {}
+northEastLeaves = []
 
-count = 0
-for leafDes in parser.find_all("span"):
-    leafDes = leafDes.text
-   
-    wordcount = 0
-    for word in leafDes.split(" "):
-        wordcount +=1
-
-    if ("leaf" in leafDes or "leaves" in leafDes or "Leaf" in leafDes or "Leaves" in leafDes) and wordcount <=4 and "Types" not in leafDes and leafDes[0].isupper() and wordcount >1:
-        leafNames.append(leafDes)
-
-
-descrip = ""
-for i in range(len(parser.find_all("span"))):
+#getting a database of leaves
+for leafName in parser.find_all(class_="popnameTd"):
+    if leafName.text.strip() not in northEastLeaves:
+        northEastLeaves.append(leafName.text.strip())
     
-    if i != 17 and i>8 and i<33 and parser.find_all("span")[i].text not in leafNames:
-        descrip += parser.find_all("span")[i].text
+
+#create a list of all of the links
+northEastLeavesimg = []
+i = 0
+for link in parser.find_all(class_= "speciesImg"):
+    northEastLeavesimg.append(link["src"])
+    i += 1
+    if i >659:
+        break
+    
+#create a list of all of the scinames
+leafSciNames = []
+for leafSciName in parser.find_all(class_="scinameTd"):
+    leafSciNames.append(leafSciName.text)
+    
+#map each tree name to image link of only the leaf and scientific name
+totalLeafDict = {}
+for i in range(len(northEastLeaves)):
+    totalLeafDict[northEastLeaves[i]] = [leafSciNames[i], northEastLeavesimg[i*3]]
+    
+print(totalLeafDict, len(totalLeafDict)) 
+
+#enter family name into this function and it will return a dictionary of the
+#trees mapped to its leaf picture link
+def findTreeImages(family, dict):
+    answer = {}
+    for tree in dict:
+        if family in tree:
+            answer[tree] = dict[tree]
         
-    if parser.find_all("span")[i].text in leafNames :
-        leafDescrip.append(descrip)
-        descrip = ""
-
-leafDescrip.append(descrip)
-
-for i in range(len(leafDescrip)-1,-1,-1):
-    if leafDescrip[i] == "":
-        leafDescrip.pop(i)
+    return answer
     
-
-for i in range(len(leafNames)):
-    leafDict[leafNames[i]] = leafDescrip[i]
-
-print(leafDict)
+print()
+print(findTreeImages("Maple", totalLeafDict))
     
+#trees to look up: maple, oak, birch, spruce 
+#or by scientific name
 
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
