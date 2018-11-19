@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 import requests
 from bs4 import BeautifulSoup
+from PIL import Image
+from io import BytesIO
+import tkinter as tk
 
 
 ## Canny Edge Algorithm
@@ -27,7 +30,6 @@ def isolateColor():
     lowerGreen = np.array([0,100,0])
     upperGreen = np.array([120,255,127])
     mask = cv2.inRange(hsv, lowerGreen, upperGreen)
-    cv2.waitKey(0)
     res = cv2.bitwise_and(img,img,mask=mask)
     cv2.imshow("only one color", res)
     cv2.waitKey(0)
@@ -97,11 +99,11 @@ for key in leafDict:
     
 # print(leafDict)
 ##
-"""Tech Demo Ends"""
+# Tech demo ends
 ##
 
 ## Countouring parts within a Green Color Range
-# Trying to outline certain green colored parts
+# Trying to outline because there's a cv compare contours function 
 #
 # def greenOutline(rlow,rhigh,glow,ghigh,blow,bhigh):
 #     img = cv2.imread('leafdemo.jpg', 1)
@@ -180,7 +182,7 @@ for link in parser.find_all(class_= "speciesImg"):
 #create a list of all of the scinames
 leafSciNames = []
 for leafSciName in parser.find_all(class_="scinameTd"):
-    leafSciNames.append(leafSciName.text)
+    leafSciNames.append(leafSciName.text.strip())
     
 #map each tree name to image link of only the leaf and scientific name
 totalLeafDict = {}
@@ -201,11 +203,42 @@ def findTreeImages(family, dict):
     
 print()
 print(findTreeImages("Maple", totalLeafDict))
-    
+
+## Display image from online in tkinter
+# myurl = totalLeafDict["Allegheny Serviceberry"][1]
+# response = requests.get(myurl)
+# img = Image.open(BytesIO(response.content))
+# on = cv2.imread(img)
+# cv2.imshow("online",on)
 #trees to look up: maple, oak, birch, spruce 
 #or by scientific name
 
+## Interface
 
+
+class Application(tk.Frame):
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.master = master
+        self.pack()
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.hi_there = tk.Button(self)
+        self.hi_there["text"] = "Hello World\n(click me)"
+        self.hi_there["command"] = self.say_hi
+        self.hi_there.pack(side="top")
+
+        self.quit = tk.Button(self, text="QUIT", fg="red",
+                              command=self.master.destroy)
+        self.quit.pack(side="bottom")
+
+    def say_hi(self):
+        print("hi there, everyone!")
+
+root = tk.Tk()
+app = Application(master=root)
+app.mainloop()
 
 
 
