@@ -1,208 +1,6 @@
-import cv2
-import numpy as np
-import requests
-from bs4 import BeautifulSoup
-from PIL import Image
-from io import BytesIO
-import tkinter as tk
-
-
-## Canny Edge Algorithm
-window_name = "Images"
-
-# Importantly, images are stored as BGR
-# Use the following function to read images.
-image = cv2.imread("leafdemo.jpg")
-edges = cv2.Canny(image, 200,500)
-# Error checking to make sure that our image actually loaded properly
-# Might fail if we have an invalid file name (or otherwise)
-if image is not None:
-    # Display our loaded image in a window with window_name
-    cv2.imshow(window_name, edges)
-    # Wait for any key to be pressed
-    cv2.waitKey(0)
-
-## Isolating parts within a Green Color Range
-
-def isolateColor():
-    img = cv2.imread("leafdemo.jpg")
-    hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-    lowerGreen = np.array([0,100,0])
-    upperGreen = np.array([120,255,127])
-    mask = cv2.inRange(hsv, lowerGreen, upperGreen)
-    res = cv2.bitwise_and(img,img,mask=mask)
-    cv2.imshow("only one color", res)
-    cv2.waitKey(0)
-    
-isolateColor()
-
-## Webscraping Leaf Information
-
-leafData = "https://gardenerdy.com/different-kinds-of-leaves"
-
-website = requests.get(leafData)
-source = website.text
-parser = BeautifulSoup(source,'html.parser')
-
-leafNames = []
-leafDescrip = []
-leafDict = {}
-
-#finds all the types of leaves and adds their names to a list
-count = 0
-for leafDes in parser.find_all("span"):
-    leafDes = leafDes.text
-   
-    wordcount = 0
-    for word in leafDes.split(" "):
-        wordcount +=1
-
-    if ("leaf" in leafDes or "leaves" in leafDes or "Leaf" in leafDes or "Leaves" in leafDes) and wordcount <=4 and "Types" not in leafDes and leafDes[0].isupper() and wordcount >1:
-        leafNames.append(leafDes)
-
-#finds all the descriptions of the leaves and adds the description to the list
-descrip = ""
-for i in range(len(parser.find_all("span"))):
-    
-    if i != 17 and i>8 and i<33 and parser.find_all("span")[i].text not in leafNames:
-        descrip += parser.find_all("span")[i].text
-        
-    if parser.find_all("span")[i].text in leafNames :
-        leafDescrip.append(descrip)
-        descrip = ""
-
-leafDescrip.append(descrip)
-
-#makes sure to get rid of any empty items
-for i in range(len(leafDescrip)-1,-1,-1):
-    if leafDescrip[i] == "":
-        leafDescrip.pop(i)
-    
-#correlate each description to name
-for i in range(len(leafNames)):
-    leafDict[leafNames[i]] = leafDescrip[i]
-    
-
-links = []
-#find all of the image links
-for i in range(len(parser.find_all("img"))):
-    if "https:" in parser.find_all("img")[i]["src"] and i>2 and i<12:
-        links.append(parser.find_all("img")[i]["src"])
-        
-
-#add the links to the leaf dictionary
-i = 0
-for key in leafDict:
-    desc = leafDict[key]
-    leafDict[key] = [desc, links[i]]
-    i+=1
-    
-# print(leafDict)
-##
-# Tech demo ends
-##
-
-## Countouring parts within a Green Color Range
-# Trying to outline because there's a cv compare contours function 
-#
-# def greenOutline(rlow,rhigh,glow,ghigh,blow,bhigh):
-#     img = cv2.imread('leafdemo.jpg', 1)
-#     
-#     r = (rlow, rhigh)
-#     g = (glow, ghigh)
-#     b = (blow, bhigh)
-#     img_rgb_threshold = cv2.inRange(img, 
-#         (r[0], g[0], b[0]),
-#         (r[1], g[1], b[1])
-#     )
-#     
-#     mode = cv2.RETR_EXTERNAL
-#     method = cv2.CHAIN_APPROX_SIMPLE
-#     
-#     im2, contours, hierarchy = cv2.findContours(img_rgb_threshold, mode=mode, method=method)
-#     
-#     min_area = 100.0
-#     max_area = 40000.0
-#     min_perimeter = 0.0
-#     min_width = 10.0
-#     max_width = 5000.0
-#     min_height = 10.0
-#     max_height = 5000.0
-#     
-#     output_contours = []
-#     for contour in contours:
-#         x,y,w,h = cv2.boundingRect(contour)
-#         if (w < min_width or w > max_width):
-#             continue
-#         if (h < min_height or h > max_height):
-#             continue
-#         area = cv2.contourArea(contour)
-#         if (area < min_area or area > max_area):
-#             continue
-#         if (cv2.arcLength(contour, True) < min_perimeter):
-#             continue
-#         output_contours.append(contour)
-#         
-#     img_drawn = cv2.drawContours(img, output_contours, -1, (255.0, 0.0, 0.0), 2)
-#     cv2.imshow('img_drawn', img_drawn)
-#     cv2.namedWindow("img_drawn", cv2.WINDOW_NORMAL)
-#     cv2.resizeWindow("img_drawn", 250,375 )
-#     cv2.waitKey(0)
-# 
-# greenOutline(0,225,0,200,0,225)
-
-## Return families of trees
-
-#creating reference tree database
-#just trees in northeast region
-
-leafDataNorthEast = "http://leafsnap.com/species/"
-
-website = requests.get(leafDataNorthEast)
-source = website.text
-parser = BeautifulSoup(source,'html.parser')
-
-northEastLeaves = []
-
-#getting a database of leaves
-for leafName in parser.find_all(class_="popnameTd"):
-    if leafName.text.strip() not in northEastLeaves:
-        northEastLeaves.append(leafName.text.strip())
-    
-
-#create a list of all of the links
-northEastLeavesimg = []
-i = 0
-for link in parser.find_all(class_= "speciesImg"):
-    northEastLeavesimg.append(link["src"])
-    i += 1
-    if i >659:
-        break
-    
-#create a list of all of the scinames
-leafSciNames = []
-for leafSciName in parser.find_all(class_="scinameTd"):
-    leafSciNames.append(leafSciName.text.strip())
-    
-#map each tree name to image link of only the leaf and scientific name
-totalLeafDict = {}
-for i in range(len(northEastLeaves)):
-    totalLeafDict[northEastLeaves[i]] = [leafSciNames[i], northEastLeavesimg[i*3]]
-    
-print(totalLeafDict, len(totalLeafDict)) 
-
-#enter family name into this function and it will return a dictionary of the
-#trees mapped to its leaf picture link
-def findTreeImages(family, dict):
-    answer = {}
-    for tree in dict:
-        if family in tree:
-            answer[tree] = dict[tree]
-        
-    return answer
-    
-print()
-print(findTreeImages("Maple", totalLeafDict))
+from LeafAnalysis import *
+from tkinter import *
+from image_util import *
 
 ## Display image from online in tkinter
 # myurl = totalLeafDict["Allegheny Serviceberry"][1]
@@ -213,40 +11,117 @@ print(findTreeImages("Maple", totalLeafDict))
 #trees to look up: maple, oak, birch, spruce 
 #or by scientific name
 
-## Interface
+## Interface (taken fro 15112 template)
+####################################
+# customize these functions
+####################################
+
+class Button(object):
+    def __init__(self, x, y, h,width, canvas, text, color):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = h
+        self.text = text
+        self.color = color
+        canvas.create_rectangle(self.x,self.y,self.x+self.width,self.y+self.height, fill = self.color)
+        canvas.create_text(self.x+self.width/2, self.y+self.height/2, text = self.text)
 
 
-class Application(tk.Frame):
-    def __init__(self, master=None):
-        super().__init__(master)
-        self.master = master
-        self.pack()
-        self.create_widgets()
+def init(data):
+    # load data.xyz as appropriate
+    data.cHeight = 600
+    data.cWidth = 1000
+    data.buttons = []
+    data.listNames = {}
+    
+    
+    
+def mousePressed(event, data):
+    # use event.x and event.y
+    for button in data.buttons:
+        if event.x >= button.x and event.x <= button.x+button.width and event.y >= button.y and event.y <= button.y+button.height:
+            if button.text != "Search":
+                data.listNames = findTreeImages(button.text)
+    
 
-    def create_widgets(self):
-        self.hi_there = tk.Button(self)
-        self.hi_there["text"] = "Hello World\n(click me)"
-        self.hi_there["command"] = self.say_hi
-        self.hi_there.pack(side="top")
+def keyPressed(event, data):
+    # use event.char and event.keysym
+    pass
 
-        self.quit = tk.Button(self, text="QUIT", fg="red",
-                              command=self.master.destroy)
-        self.quit.pack(side="bottom")
+def timerFired(data):
+    pass
 
-    def say_hi(self):
-        print("hi there, everyone!")
+def redrawAll(canvas, data):
+    canvas.create_rectangle(0,0,data.cWidth, 50, fill = "green")
+    canvas.create_text(data.cWidth/2, 25, text = "Leaf Finder")
+    canvas.create_rectangle(data.cWidth-200, 0, data.cWidth, data.cHeight, fill = "dark green")
+    searchButton = Button(data.cWidth-200+25, 25, 25, 100,canvas, "Search", "white" )
+    maple = Button(data.cWidth-200+25,50,25,100,canvas, "Maple", "white")
+    birch = Button(data.cWidth-200+25,75,25,100,canvas, "Birch", "white")
+    oak = Button(data.cWidth-200+25,100,25,100,canvas, "Oak", "white")
+    data.buttons.append(searchButton)
+    data.buttons.append(maple)
+    data.buttons.append(birch)
+    data.buttons.append(oak)
+    count = 0
+    for key in data.listNames:
+        canvas.create_text(100, 100+count*20, text = key )
+        canvas.create_image(200,100+count*50, PhotoImageFromLink("https://www.cs.cmu.edu/~112/notes/hw6-112-icon.gif"), anchor = NW)
+        count += 1
+    
+    #cite stack overflow
+    
 
-root = tk.Tk()
-app = Application(master=root)
-app.mainloop()
+####################################
+# use the run function as-is
+####################################
 
+def run(width=300, height=300):
+    def redrawAllWrapper(canvas, data):
+        canvas.delete(ALL)
+        canvas.create_rectangle(0, 0, data.width, data.height,
+                                fill='white', width=0)
+        redrawAll(canvas, data)
+        canvas.update()    
 
+    def mousePressedWrapper(event, canvas, data):
+        mousePressed(event, data)
+        redrawAllWrapper(canvas, data)
 
+    def keyPressedWrapper(event, canvas, data):
+        keyPressed(event, data)
+        redrawAllWrapper(canvas, data)
 
+    def timerFiredWrapper(canvas, data):
+        timerFired(data)
+        redrawAllWrapper(canvas, data)
+        # pause, then call timerFired again
+        canvas.after(data.timerDelay, timerFiredWrapper, canvas, data)
+    # Set up data and call init
+    class Struct(object): pass
+    data = Struct()
+    data.width = width
+    data.height = height
+    data.timerDelay = 100 # milliseconds
+    root = Tk()
+    root.resizable(width=False, height=False) # prevents resizing window
+    init(data)
+    # create the root and the canvas
+    canvas = Canvas(root, width=data.width, height=data.height)
+    canvas.configure(bd=0, highlightthickness=0)
+    canvas.pack()
+    # set up events
+    root.bind("<Button-1>", lambda event:
+                            mousePressedWrapper(event, canvas, data))
+    root.bind("<Key>", lambda event:
+                            keyPressedWrapper(event, canvas, data))
+    timerFiredWrapper(canvas, data)
+    # and launch the app
+    root.mainloop()  # blocks until window is closed
+    print("bye!")
 
-
-
-
+run(1000, 600)
 
 
 
