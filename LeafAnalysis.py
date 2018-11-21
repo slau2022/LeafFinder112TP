@@ -7,15 +7,12 @@ from io import BytesIO
 import tkinter as tk
 
 ## Canny Edge Algorithm
-window_name = "Images"
-
-def findOutlines(img):
-    # Importantly, images are stored as BGR
-    # Use the following function to read images.
-    image = cv2.imread("leafdemo.jpg")
+#function will find the outlines of an image
+def findOutLines(img):
+    window_name = "Images"
+    image = cv2.imread("leafdemo.jpg") #leafdemo is placeholder
     edges = cv2.Canny(image, 200,500)
     # Error checking to make sure that our image actually loaded properly
-    # Might fail if we have an invalid file name (or otherwise)
     if image is not None:
         # Display our loaded image in a window with window_name
         cv2.imshow(window_name, edges)
@@ -24,11 +21,12 @@ def findOutlines(img):
 
 ## Isolating parts within a Green Color Range
 
-def isolateColor():
+def isolateColor(lower, upper):
+    #isolates colors in range
     img = cv2.imread("leafdemo.jpg")
     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     lowerGreen = np.array([0,100,0])
-    upperGreen = np.array([120,255,127])
+    upperGreen = np.array([120,255,127]) #placeholder range
     mask = cv2.inRange(hsv, lowerGreen, upperGreen)
     res = cv2.bitwise_and(img,img,mask=mask)
     cv2.imshow("only one color", res)
@@ -37,6 +35,7 @@ def isolateColor():
 
 ## Webscraping Leaf Types Information
 
+#Getting the database for types of leaves
 leafData = "https://gardenerdy.com/different-kinds-of-leaves"
 
 website = requests.get(leafData)
@@ -98,6 +97,7 @@ for key in leafDict:
     
 ## Database of Trees Webscraping
 
+#getting database of tree species
 #creating reference tree database
 #just trees in northeast region
 
@@ -146,8 +146,10 @@ def findTreeImages(family, dict = totalLeafDict):
     return answer
     
 
-## Countouring parts within a Green Color Range
-# Trying to outline because there's a cv compare contours function 
+## Countouring 
+#[NOT WORKING] 
+#Template from GitHub Autonomous Garden 
+#Function to find contours because there's a cv compare contours function 
 #
 # def greenOutline(rlow,rhigh,glow,ghigh,blow,bhigh):
 #     img = cv2.imread('leafdemo.jpg', 1)

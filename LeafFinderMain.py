@@ -11,11 +11,12 @@ from image_util import *
 #trees to look up: maple, oak, birch, spruce 
 #or by scientific name
 
-## Interface (taken fro 15112 template)
+
 ####################################
-# customize these functions
+# Interface (taken from 15112 template)
 ####################################
 
+#creating personal button class
 class Button(object):
     def __init__(self, x, y, h,width, canvas, text, color):
         self.x = x
@@ -26,16 +27,15 @@ class Button(object):
         self.color = color
         canvas.create_rectangle(self.x,self.y,self.x+self.width,self.y+self.height, fill = self.color)
         canvas.create_text(self.x+self.width/2, self.y+self.height/2, text = self.text)
-
-
+       
+#building the interface
 def init(data):
     # load data.xyz as appropriate
     data.cHeight = 600
     data.cWidth = 1000
     data.buttons = []
     data.listNames = {}
-    
-    
+    data.photo = PhotoImage(file = "2n2a8n.gif")
     
 def mousePressed(event, data):
     # use event.x and event.y
@@ -56,7 +56,7 @@ def redrawAll(canvas, data):
     canvas.create_rectangle(0,0,data.cWidth, 50, fill = "green")
     canvas.create_text(data.cWidth/2, 25, text = "Leaf Finder")
     canvas.create_rectangle(data.cWidth-200, 0, data.cWidth, data.cHeight, fill = "dark green")
-    searchButton = Button(data.cWidth-200+25, 25, 25, 100,canvas, "Search", "white" )
+    searchButton = Button(data.cWidth-200+25, 25, 25, 100,canvas, "Search", "gray" )
     maple = Button(data.cWidth-200+25,50,25,100,canvas, "Maple", "white")
     birch = Button(data.cWidth-200+25,75,25,100,canvas, "Birch", "white")
     oak = Button(data.cWidth-200+25,100,25,100,canvas, "Oak", "white")
@@ -65,12 +65,22 @@ def redrawAll(canvas, data):
     data.buttons.append(birch)
     data.buttons.append(oak)
     count = 0
-    for key in data.listNames:
-        canvas.create_text(100, 100+count*20, text = key )
-        canvas.create_image(200,100+count*50, PhotoImageFromLink("https://www.cs.cmu.edu/~112/notes/hw6-112-icon.gif"), anchor = NW)
-        count += 1
     
-    #cite stack overflow
+    for key in data.listNames:
+        #list trees in particular family chosen
+        canvas.create_text(100, 100+count*20, text = key)
+        #placeholder for image b/c links from current database are not gifs
+        if count%2 ==0:
+            canvas.create_image(300,100+100*(count//2),image = data.photo, anchor = NW)
+        else:
+            canvas.create_image(550,100+100*(count//2),image = data.photo, anchor = NW)
+        count += 1
+        
+        #[NOT WORKING] displaying image from link
+        # print(data.listNames[key][1])
+        # img = PhotoImageFromLink("http://api.leafsnap.com/v1/species/Betula%20lenta/images/LTV-RBD-02287_crop.jpg?crop=11,145,1066,1199&h=150&w=150")
+        # canvas.create_image(200,100+count*50, img , anchor = NW)
+        
     
 
 ####################################
