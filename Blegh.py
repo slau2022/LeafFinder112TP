@@ -18,24 +18,34 @@ def validContours(edges):
 def betterIsolation(leaf):
     #returns contours of the leaf
     ph = cv2.imread(leaf)
-    ph = cv2.resize(ph, (300,500))
-    ph = cv2.cvtColor(ph, cv2.COLOR_BGR2GRAY)
 
+    ph = cv2.resize(ph, (300,500))
+    ph = cv2.fastNlMeansDenoising(ph)
+    
+    cv2.imshow("ya", ph)
+    cv2.waitKey(0)
+    
+    ph = cv2.cvtColor(ph, cv2.COLOR_BGR2GRAY)
+    
+    
     th3 = cv2.bitwise_not(ph) #isolate just the leaf
 
     ret, th3 = cv2.threshold(th3,15,255,cv2.THRESH_BINARY)#get rid of innards of leaf
 
+    th3 = cv2.adaptiveThreshold(th3,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+                cv2.THRESH_BINARY,11,2) #get outline of leaf
+    cv2.imshow("when you try your best", th3)
+    cv2.waitKey(0)
     can = cv2.Canny(th3, 300, 600)
-    
 
-   #   th3 = cv2.adaptiveThreshold(th3,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-    #             cv2.THRESH_BINARY,11,2) #get outline of leaf
+
+     
     
     im2, contours, hierarchy = cv2.findContours(can, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    cv2.imshow("when you try your best", can)
+    cv2.imshow("and you don't succeed'", can)
     cv2.waitKey(0)
    
-    print(contours)
+    # print(contours)
     return contours
     
 def compareOutlines(leaf1, leaf2):
@@ -94,6 +104,7 @@ def analyzeLeaf(leaf):
             print(other)
             closeValue += compareOutlines(leaf, other )
         closeValue = closeValue/3 #averages the values for each type
+        print(closeValue)
         if winValue == None:
             winValue = closeValue
             winLeaf = feuille
@@ -103,7 +114,7 @@ def analyzeLeaf(leaf):
     
     return winLeaf
         
-print(analyzeLeaf("leaftrial2.jpg"))
+print(analyzeLeaf("leaftrial.jpg"))
 
 # ph = cv2.imread("leaftrial.jpg")
 # ph = cv2.cvtColor(ph, cv2.COLOR_BGR2GRAY)
