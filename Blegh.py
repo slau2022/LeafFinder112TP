@@ -126,9 +126,36 @@ def analyzeLeaf(leaf):
 #https://www.pyimagesearch.com/2014/04/07/building-pokedex-python-indexing-sprites-using-shape-descriptors-step-3-6/
 
 
+#https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_feature2d/py_features_harris/py_features_harris.html
+def detectCorners(leaf):
+    filename = leaf
+    
+    img = cv2.imread(filename)
+    img = cv2.bitwise_not(img)
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    ret, gray = cv2.threshold(gray,15,255,cv2.THRESH_BINARY)
+    contours,hierarchy = cv2.findContours(gray,2,1)
+    
+    gray = np.float32(gray)
+    dst = cv2.cornerHarris(gray,2,3,0.04)
+    
+    
+    #result is dilated for marking the corners, not important
+    dst = cv2.dilate(dst,None)
+    
+    # Threshold for an optimal value, it may vary depending on the image.
+    img[dst>.4*dst.max()]=[255]
+    cnt = contours[0]
+    hull = cv2.convexHull(cnt,returnPoints = False)
+    defects = cv2.convexityDefects(cnt,hull)
+    
+    cv2.imshow('dst',img)
+    cv2.waitKey(0)
+    # if cv2.waitKey(0) & 0xff == 27:
+    #     cv2.destroyAllWindows()
 
-def countLobes(leaf):
-    pass
+    
+detectCorners("leaftrial.jpg")
 
 def detectTrim(leaf):
     pass
