@@ -134,29 +134,58 @@ def detectCorners(leaf):
     img = cv2.bitwise_not(img)
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     ret, gray = cv2.threshold(gray,15,255,cv2.THRESH_BINARY)
-    contours,hierarchy = cv2.findContours(gray,2,1)
-    
+
     gray = np.float32(gray)
     dst = cv2.cornerHarris(gray,2,3,0.04)
-    
     
     #result is dilated for marking the corners, not important
     dst = cv2.dilate(dst,None)
     
     # Threshold for an optimal value, it may vary depending on the image.
     img[dst>.4*dst.max()]=[255]
-    cnt = contours[0]
-    hull = cv2.convexHull(cnt,returnPoints = False)
-    defects = cv2.convexityDefects(cnt,hull)
     
     cv2.imshow('dst',img)
     cv2.waitKey(0)
     # if cv2.waitKey(0) & 0xff == 27:
     #     cv2.destroyAllWindows()
 
-    
-detectCorners("leaftrial.jpg")
+#https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contours_more_functions/py_contours_more_functions.html
+#detectCorners("leaftrial.jpg")
 
+def detectLobes(leaf):
+    pass
+
+def backgroundElim(frame):
+    bgSubThreshold = 50
+    blurValue = 41
+    threshold = 60
+    img = cv2.imread(frame)
+    frame = cv2.imread(frame)
+    bgModel = cv2.createBackgroundSubtractorMOG2(0, bgSubThreshold)
+    fgmask = bgModel.apply(frame)
+    res = cv2.bitwise_and(frame, frame, mask=fgmask)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
+    ret, thresh = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY)
+    cv2.imshow("blur", res)
+    cv2.waitKey(0)
+    
+    
+# 
+# backgroundElim("leafbg.jpg")
+
+
+
+
+    # bgModel = cv2.BackgroundSubtractorMOG2(0, bgSubThreshold)
+    # fgmask = bgModel.apply(leaf)
+    # res = cv2.bitwise_and(leaf, leaf, mask=fgmask)
+    # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
+    # ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY)
+
+
+    
 def detectTrim(leaf):
     pass
 
@@ -217,6 +246,59 @@ print(detectColor("leafdemo.jpg"))
 
 def detectComposite(leaf):
     pass
+    
+
+
+## Countouring 
+#[NOT WORKING] 
+#Template from GitHub Autonomous Garden 
+#Function to find contours because there's a cv compare contours function 
+#
+def greenOutline(rlow,rhigh,glow,ghigh,blow,bhigh):
+    img = cv2.imread('leafdemo.jpg', 1)
+    
+    r = (rlow, rhigh)
+    g = (glow, ghigh)
+    b = (blow, bhigh)
+    img_rgb_threshold = cv2.inRange(img, 
+        (r[0], g[0], b[0]),
+        (r[1], g[1], b[1])
+    )
+    
+    mode = cv2.RETR_EXTERNAL
+    method = cv2.CHAIN_APPROX_SIMPLE
+    
+    im2, contours, hierarchy = cv2.findContours(img_rgb_threshold, mode=mode, method=method)
+    
+    min_area = 100.0
+    max_area = 40000.0
+    min_perimeter = 0.0
+    min_width = 10.0
+    max_width = 5000.0
+    min_height = 10.0
+    max_height = 5000.0
+    
+    output_contours = []
+    for contour in contours:
+        x,y,w,h = cv2.boundingRect(contour)
+        if (w < min_width or w > max_width):
+            continue
+        if (h < min_height or h > max_height):
+            continue
+        area = cv2.contourArea(contour)
+        if (area < min_area or area > max_area):
+            continue
+        if (cv2.arcLength(contour, True) < min_perimeter):
+            continue
+        output_contours.append(contour)
+        
+    img_drawn = cv2.drawContours(img, output_contours, -1, (255.0, 0.0, 0.0), 2)
+    cv2.imshow('img_drawn', img_drawn)
+    cv2.namedWindow("img_drawn", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("img_drawn", 250,375 )
+    cv2.waitKey(0)
+
+# greenOutline(0,225,0,200,0,225)
 
 """
 Things to do:

@@ -7,7 +7,7 @@ from io import BytesIO
 import tkinter as tk
 
 ## Canny Edge Algorithm
-#function will find the outlines of an image
+#function will return image of just outlines of an image
 def findOutLines(img):
     window_name = "Images"
     image = cv2.imread("leafdemo.jpg") #leafdemo is placeholder
@@ -18,15 +18,43 @@ def findOutLines(img):
         cv2.imshow(window_name, edges)
         # Wait for any key to be pressed
         cv2.waitKey(0)
+    return edges
 
 ## Isolating parts within a Green Color Range
 
+def convertHSV(rgb):
+    rP = rgb[0]/255
+    gP = rgb[1]/225
+    bP = rgb[2]/225
+    cmax = max((rP,gP,bP))
+    cmin = min((rP,gP,bP))
+    V = Cmax
+    cD = cmax-cmin
+    if cD == 0:
+        H = 0
+    elif cmax == rP:
+        H = 60 * (((gP-bP)/cD)%6)
+    elif cmax == gP:
+        H = 60 * (((bP-rP)/cD)+2)
+    elif cmax == bP:
+        H = 60 * (((rP-gP)/cD)+4)
+    
+    if cmax == 0:
+        S = 0
+    else:
+        S = cD/cmax
+    
+    V = V/100*255
+    S = S/100*255
+    
+    return (H,S,V)
+
 def isolateColor(lower, upper):
-    #isolates colors in range
+    #isolates colors in range, upper is rgb
     img = cv2.imread("leafdemo.jpg")
     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-    lowerGreen = np.array([0,100,0])
-    upperGreen = np.array([120,255,127]) #placeholder range
+    lowerGreen = np.array(lower) #[0,100,0]
+    upperGreen = np.array(upper) #placeholder range [120,255,127]
     mask = cv2.inRange(hsv, lowerGreen, upperGreen)
     res = cv2.bitwise_and(img,img,mask=mask)
     cv2.imshow("only one color", res)
@@ -146,53 +174,3 @@ def findTreeImages(family, dict = totalLeafDict):
     return answer
     
 
-## Countouring 
-#[NOT WORKING] 
-#Template from GitHub Autonomous Garden 
-#Function to find contours because there's a cv compare contours function 
-#
-# def greenOutline(rlow,rhigh,glow,ghigh,blow,bhigh):
-#     img = cv2.imread('leafdemo.jpg', 1)
-#     
-#     r = (rlow, rhigh)
-#     g = (glow, ghigh)
-#     b = (blow, bhigh)
-#     img_rgb_threshold = cv2.inRange(img, 
-#         (r[0], g[0], b[0]),
-#         (r[1], g[1], b[1])
-#     )
-#     
-#     mode = cv2.RETR_EXTERNAL
-#     method = cv2.CHAIN_APPROX_SIMPLE
-#     
-#     im2, contours, hierarchy = cv2.findContours(img_rgb_threshold, mode=mode, method=method)
-#     
-#     min_area = 100.0
-#     max_area = 40000.0
-#     min_perimeter = 0.0
-#     min_width = 10.0
-#     max_width = 5000.0
-#     min_height = 10.0
-#     max_height = 5000.0
-#     
-#     output_contours = []
-#     for contour in contours:
-#         x,y,w,h = cv2.boundingRect(contour)
-#         if (w < min_width or w > max_width):
-#             continue
-#         if (h < min_height or h > max_height):
-#             continue
-#         area = cv2.contourArea(contour)
-#         if (area < min_area or area > max_area):
-#             continue
-#         if (cv2.arcLength(contour, True) < min_perimeter):
-#             continue
-#         output_contours.append(contour)
-#         
-#     img_drawn = cv2.drawContours(img, output_contours, -1, (255.0, 0.0, 0.0), 2)
-#     cv2.imshow('img_drawn', img_drawn)
-#     cv2.namedWindow("img_drawn", cv2.WINDOW_NORMAL)
-#     cv2.resizeWindow("img_drawn", 250,375 )
-#     cv2.waitKey(0)
-# 
-# greenOutline(0,225,0,200,0,225)
