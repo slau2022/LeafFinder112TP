@@ -7,6 +7,7 @@ from io import BytesIO
 import cv2
 import numpy as np
 import os
+from sklearn.cluster import KMeans
 
 def validContours(edges):
     for line in edges:
@@ -38,8 +39,6 @@ def betterIsolation(leaf):
     cv2.waitKey(0)
     can = cv2.Canny(th3, 300, 600)
 
-
-     
     
     im2, contours, hierarchy = cv2.findContours(can, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     cv2.imshow("and you don't succeed'", can)
@@ -114,7 +113,7 @@ def analyzeLeaf(leaf):
     
     return winLeaf
         
-print(analyzeLeaf("leaftrial.jpg"))
+# print(analyzeLeaf("leaftrial.jpg"))
 
 # ph = cv2.imread("leaftrial.jpg")
 # ph = cv2.cvtColor(ph, cv2.COLOR_BGR2GRAY)
@@ -128,16 +127,66 @@ print(analyzeLeaf("leaftrial.jpg"))
 
 
 
-
-
 def countLobes(leaf):
     pass
 
 def detectTrim(leaf):
     pass
 
+# https://code.likeagirl.io/finding-dominant-colour-on-an-image-b4e075f98097
+
+def find_histogram(clt):
+    """
+    create a histogram with k clusters
+    :param: clt
+    :return:hist
+    """
+    numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
+    (hist, _) = np.histogram(clt.labels_, bins=numLabels)
+
+    hist = hist.astype("float")
+    hist /= hist.sum()
+
+    return hist
+    
+def findColor(hist, centroids):
+    maxPerc = None
+    comCol = None
+    for (percent, color) in zip(hist, centroids):
+        if maxPerc == None:
+            maxPerc = percent
+            comCol = color
+        elif percent > maxPerc:
+            maxPerc = percent
+            comCol = color
+    
+    maxPerc2 = None
+    comCol2 = comCol  
+    for (percent, color) in zip(hist, centroids):
+        if comCol2.all() == comCol.all() and color.astype("uint8").tolist() != comCol.astype("uint8").tolist():
+            maxPerc2 = percent
+            comCol2 = color
+        elif color.astype("uint8").tolist() != comCol.astype("uint8").tolist() and percent > maxPerc2:
+            maxPerc2 = percent
+            comCol2 = color
+        
+    color = comCol2.astype("uint8").tolist()
+    return color
+
 def detectColor(leaf):
-    pass
+    img = cv2.imread(leaf)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    
+    img = img.reshape((img.shape[0] * img.shape[1],3)) #represent as row*column,channel number
+    clt = KMeans(n_clusters=4) #cluster number
+    clt.fit(img)
+    
+    hist = find_histogram(clt)
+    col = tuple(findColor(hist, clt.cluster_centers_))
+    return str(col)+ " is the most common color in this leaf."
+
+print(detectColor("leafdemo.jpg"))
+
 
 def detectComposite(leaf):
     pass
