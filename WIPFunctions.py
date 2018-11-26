@@ -14,8 +14,8 @@ from sklearn.cluster import KMeans
 Things to do:
 
 1: fix trim matching
-2. Upload images feature
-3: Find "lobes" of lobed leaves
+2. Upload images feature ~~~
+3: Find "lobes" of lobed leaves 
 4: isolate leaf from a non white background
 
 """

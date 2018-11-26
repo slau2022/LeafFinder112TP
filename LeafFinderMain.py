@@ -39,18 +39,17 @@ def init(data):
     data.listNames = {}
     data.photo = PhotoImage(file = "2n2a8n.gif")
     
-def mousePressed(event, data):
+def mousePressed(event, data, root):
     # use event.x and event.y
     for button in data.buttons:
         if event.x >= button.x and event.x <= button.x+button.width and event.y >= button.y and event.y <= button.y+button.height:
             if button.text != "Search" and button.text != "Upload":
                 data.listNames = findTreeImages(button.text)
             elif button.text == "Upload":
-                upload = Tk()
-                upload.withdraw()
-                upload.update()
+                root.update()
                 file_path = filedialog.askopenfilename()
-                upload.destroy()
+                print(file_path)
+                
                 
 def keyPressed(event, data):
     # use event.char and event.keysym
@@ -104,8 +103,8 @@ def run(width=300, height=300):
         redrawAll(canvas, data)
         canvas.update()    
 
-    def mousePressedWrapper(event, canvas, data):
-        mousePressed(event, data)
+    def mousePressedWrapper(event, canvas, data, root):
+        mousePressed(event, data, root)
         redrawAllWrapper(canvas, data)
 
     def keyPressedWrapper(event, canvas, data):
@@ -133,7 +132,7 @@ def run(width=300, height=300):
     canvas.pack()
     # set up events
     root.bind("<Button-1>", lambda event:
-                            mousePressedWrapper(event, canvas, data))
+                            mousePressedWrapper(event, canvas, data, root))
     root.bind("<Key>", lambda event:
                             keyPressedWrapper(event, canvas, data))
     timerFiredWrapper(canvas, data)
