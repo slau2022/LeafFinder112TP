@@ -4,62 +4,10 @@ import requests
 from bs4 import BeautifulSoup
 from PIL import Image
 from io import BytesIO
-import tkinter as tk
-
-## Canny Edge Algorithm
-#function will return image of just outlines of an image
-def findOutLines(img):
-    window_name = "Images"
-    image = cv2.imread("leafdemo.jpg") #leafdemo is placeholder
-    edges = cv2.Canny(image, 200,500)
-    # Error checking to make sure that our image actually loaded properly
-    if image is not None:
-        # Display our loaded image in a window with window_name
-        cv2.imshow(window_name, edges)
-        # Wait for any key to be pressed
-        cv2.waitKey(0)
-    return edges
-
-## Isolating parts within a Green Color Range
-
-def convertHSV(rgb):
-    rP = rgb[0]/255
-    gP = rgb[1]/225
-    bP = rgb[2]/225
-    cmax = max((rP,gP,bP))
-    cmin = min((rP,gP,bP))
-    V = Cmax
-    cD = cmax-cmin
-    if cD == 0:
-        H = 0
-    elif cmax == rP:
-        H = 60 * (((gP-bP)/cD)%6)
-    elif cmax == gP:
-        H = 60 * (((bP-rP)/cD)+2)
-    elif cmax == bP:
-        H = 60 * (((rP-gP)/cD)+4)
-    
-    if cmax == 0:
-        S = 0
-    else:
-        S = cD/cmax
-    
-    V = V/100*255
-    S = S/100*255
-    
-    return (H,S,V)
-
-def isolateColor(lower, upper):
-    #isolates colors in range, upper is rgb
-    img = cv2.imread("leafdemo.jpg")
-    hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-    lowerGreen = np.array(lower) #[0,100,0]
-    upperGreen = np.array(upper) #placeholder range [120,255,127]
-    mask = cv2.inRange(hsv, lowerGreen, upperGreen)
-    res = cv2.bitwise_and(img,img,mask=mask)
-    cv2.imshow("only one color", res)
-    cv2.waitKey(0)
-
+from tkinter import *
+import os
+from sklearn.cluster import KMeans
+from urllib import *
 
 ## Webscraping Leaf Types Information
 
@@ -124,7 +72,6 @@ for key in leafDict:
     i+=1
     
 ## Database of Trees Webscraping
-
 #getting database of tree species
 #creating reference tree database
 #just trees in northeast region
@@ -161,8 +108,8 @@ for leafSciName in parser.find_all(class_="scinameTd"):
 totalLeafDict = {}
 for i in range(len(northEastLeaves)):
     totalLeafDict[northEastLeaves[i]] = [leafSciNames[i], northEastLeavesimg[i*3]]
-    
 
+## Get Trees in a Family
 #enter family name into this function and it will return a dictionary of the
 #trees mapped to its leaf picture link
 def findTreeImages(family, dict = totalLeafDict):
@@ -172,5 +119,113 @@ def findTreeImages(family, dict = totalLeafDict):
             answer[tree] = dict[tree]
         
     return answer
-    
 
+## Fetch Generic Outline [NEEDS WORK]
+#function will return image of just outlines of an image
+def findOutLines(img):
+    window_name = "Images"
+    image = cv2.imread("leafdemo.jpg") #leafdemo is placeholder
+    edges = cv2.Canny(image, 200,500)
+    # Error checking to make sure that our image actually loaded properly
+    if image is not None:
+        # Display our loaded image in a window with window_name
+        cv2.imshow(window_name, edges)
+        # Wait for any key to be pressed
+        cv2.waitKey(0)
+    return edges
+
+## Isolating parts within a Green Color Range
+
+def convertHSV(rgb):
+    rP = rgb[0]/255
+    gP = rgb[1]/225
+    bP = rgb[2]/225
+    cmax = max((rP,gP,bP))
+    cmin = min((rP,gP,bP))
+    V = Cmax
+    cD = cmax-cmin
+    if cD == 0:
+        H = 0
+    elif cmax == rP:
+        H = 60 * (((gP-bP)/cD)%6)
+    elif cmax == gP:
+        H = 60 * (((bP-rP)/cD)+2)
+    elif cmax == bP:
+        H = 60 * (((rP-gP)/cD)+4)
+    
+    if cmax == 0:
+        S = 0
+    else:
+        S = cD/cmax
+    
+    V = V/100*255
+    S = S/100*255
+    
+    return (H,S,V)
+
+def isolateColor(lower, upper):
+    #isolates colors in range, upper is rgb
+    img = cv2.imread("leafdemo.jpg")
+    hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+    lowerGreen = np.array(lower) #[0,100,0]
+    upperGreen = np.array(upper) #placeholder range [120,255,127]
+    mask = cv2.inRange(hsv, lowerGreen, upperGreen)
+    res = cv2.bitwise_and(img,img,mask=mask)
+    cv2.imshow("only one color", res)
+    cv2.waitKey(0)
+
+
+## Find Most Common Color
+# https://code.likeagirl.io/finding-dominant-colour-on-an-image-b4e075f98097
+
+def find_histogram(clt):
+    """
+    create a histogram with k clusters
+    :param: clt
+    :return:hist
+    """
+    numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
+    (hist, _) = np.histogram(clt.labels_, bins=numLabels)
+
+    hist = hist.astype("float")
+    hist /= hist.sum()
+
+    return hist
+    
+def findColor(hist, centroids):
+    maxPerc = None
+    comCol = None
+    for (percent, color) in zip(hist, centroids):
+        if maxPerc == None:
+            maxPerc = percent
+            comCol = color
+        elif percent > maxPerc:
+            maxPerc = percent
+            comCol = color
+    
+    maxPerc2 = None
+    comCol2 = comCol  
+    for (percent, color) in zip(hist, centroids):
+        if comCol2.all() == comCol.all() and color.astype("uint8").tolist() != comCol.astype("uint8").tolist():
+            maxPerc2 = percent
+            comCol2 = color
+        elif color.astype("uint8").tolist() != comCol.astype("uint8").tolist() and percent > maxPerc2:
+            maxPerc2 = percent
+            comCol2 = color
+        
+    color = comCol2.astype("uint8").tolist()
+    return color
+
+def detectColor(leaf):
+    img = cv2.imread(leaf)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    
+    img = img.reshape((img.shape[0] * img.shape[1],3)) #represent as row*column,channel number
+    clt = KMeans(n_clusters=4) #cluster number
+    clt.fit(img)
+    
+    hist = find_histogram(clt)
+    col = tuple(findColor(hist, clt.cluster_centers_))
+    return str(col)+ " is the most common color in this leaf."
+
+# print(detectColor("leafdemo.jpg"))

@@ -1,6 +1,8 @@
 from LeafAnalysis import *
 from tkinter import *
+from tkinter import filedialog
 from image_util import *
+from WIPFunctions import *
 
 ## Display image from online in tkinter
 # myurl = totalLeafDict["Allegheny Serviceberry"][1]
@@ -41,10 +43,15 @@ def mousePressed(event, data):
     # use event.x and event.y
     for button in data.buttons:
         if event.x >= button.x and event.x <= button.x+button.width and event.y >= button.y and event.y <= button.y+button.height:
-            if button.text != "Search":
+            if button.text != "Search" and button.text != "Upload":
                 data.listNames = findTreeImages(button.text)
-    
-
+            elif button.text == "Upload":
+                upload = Tk()
+                upload.withdraw()
+                upload.update()
+                file_path = filedialog.askopenfilename()
+                upload.destroy()
+                
 def keyPressed(event, data):
     # use event.char and event.keysym
     pass
@@ -60,10 +67,12 @@ def redrawAll(canvas, data):
     maple = Button(data.cWidth-200+25,50,25,100,canvas, "Maple", "white")
     birch = Button(data.cWidth-200+25,75,25,100,canvas, "Birch", "white")
     oak = Button(data.cWidth-200+25,100,25,100,canvas, "Oak", "white")
+    upload = Button(data.cWidth-200+25,125,25,100,canvas, "Upload", "white")
     data.buttons.append(searchButton)
     data.buttons.append(maple)
     data.buttons.append(birch)
     data.buttons.append(oak)
+    data.buttons.append(upload)
     count = 0
     
     for key in data.listNames:
@@ -114,6 +123,7 @@ def run(width=300, height=300):
     data.width = width
     data.height = height
     data.timerDelay = 100 # milliseconds
+    
     root = Tk()
     root.resizable(width=False, height=False) # prevents resizing window
     init(data)

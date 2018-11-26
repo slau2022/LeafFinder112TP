@@ -9,22 +9,25 @@ import numpy as np
 import os
 from sklearn.cluster import KMeans
 
-def validContours(edges):
-    for line in edges:
-        for point in line:
-            if point !=0:
-                return True
-    return False
-    
+
+"""
+Things to do:
+
+1: fix trim matching
+2. Upload images feature
+3: Find "lobes" of lobed leaves
+4: isolate leaf from a non white background
+
+"""
+
+## Isolates leaf from background that is not white
+#returns contours of a leaf with white background
 def betterIsolation(leaf):
     #returns contours of the leaf
     ph = cv2.imread(leaf)
 
     ph = cv2.resize(ph, (300,500))
     ph = cv2.fastNlMeansDenoising(ph)
-    
-    cv2.imshow("ya", ph)
-    cv2.waitKey(0)
     
     ph = cv2.cvtColor(ph, cv2.COLOR_BGR2GRAY)
     
@@ -33,20 +36,50 @@ def betterIsolation(leaf):
 
     ret, th3 = cv2.threshold(th3,15,255,cv2.THRESH_BINARY)#get rid of innards of leaf
 
-    th3 = cv2.adaptiveThreshold(th3,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-                cv2.THRESH_BINARY,11,2) #get outline of leaf
-    cv2.imshow("when you try your best", th3)
-    cv2.waitKey(0)
-    can = cv2.Canny(th3, 300, 600)
+    # th3 = cv2.adaptiveThreshold(th3,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+                # cv2.THRESH_BINARY,11,2) #get outline of leaf
+    # cv2.imshow("when you try your best", th3)
+    # cv2.waitKey(0)
+    # can = cv2.Canny(th3, 300, 600)
 
     
-    im2, contours, hierarchy = cv2.findContours(can, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    cv2.imshow("and you don't succeed'", can)
+    im2, contours, hierarchy = cv2.findContours(th3, 2,1)
+    cv2.drawContours(im2,contours,-1,(128,255,0),3)
+    cv2.imshow("when you try your best", im2)
     cv2.waitKey(0)
    
     # print(contours)
     return contours
+
+
+def backgroundElim(frame):
+    bgSubThreshold = 50
+    blurValue = 41
+    threshold = 60
+    img = cv2.imread(frame)
+    frame = cv2.imread(frame)
+    bgModel = cv2.createBackgroundSubtractorMOG2(0, bgSubThreshold)
+    fgmask = bgModel.apply(frame)
+    res = cv2.bitwise_and(frame, frame, mask=fgmask)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
+    ret, thresh = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY)
+    cv2.imshow("blur", res)
+    cv2.waitKey(0)
     
+    
+# 
+# backgroundElim("leafbg.jpg")
+
+    # bgModel = cv2.BackgroundSubtractorMOG2(0, bgSubThreshold)
+    # fgmask = bgModel.apply(leaf)
+    # res = cv2.bitwise_and(leaf, leaf, mask=fgmask)
+    # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
+    # ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY)
+
+
+## Identify major shape of a leaf    
 def compareOutlines(leaf1, leaf2):
     
     # ph = cv2.imread(leaf1) #leaf1
@@ -61,7 +94,7 @@ def compareOutlines(leaf1, leaf2):
     # edges = cv2.Canny(ph, 300,600)
     # edges2 = cv2.Canny(ph2, 300,600)
 
-   ##   
+
     # modify = 0
     # 
     # while not validContours(edges2):
@@ -125,7 +158,7 @@ def analyzeLeaf(leaf):
 
 #https://www.pyimagesearch.com/2014/04/07/building-pokedex-python-indexing-sprites-using-shape-descriptors-step-3-6/
 
-
+## Trying to find "lobes"
 #https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_feature2d/py_features_harris/py_features_harris.html
 def detectCorners(leaf):
     filename = leaf
@@ -154,99 +187,6 @@ def detectCorners(leaf):
 
 def detectLobes(leaf):
     pass
-
-def backgroundElim(frame):
-    bgSubThreshold = 50
-    blurValue = 41
-    threshold = 60
-    img = cv2.imread(frame)
-    frame = cv2.imread(frame)
-    bgModel = cv2.createBackgroundSubtractorMOG2(0, bgSubThreshold)
-    fgmask = bgModel.apply(frame)
-    res = cv2.bitwise_and(frame, frame, mask=fgmask)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
-    ret, thresh = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY)
-    cv2.imshow("blur", res)
-    cv2.waitKey(0)
-    
-    
-# 
-# backgroundElim("leafbg.jpg")
-
-
-
-
-    # bgModel = cv2.BackgroundSubtractorMOG2(0, bgSubThreshold)
-    # fgmask = bgModel.apply(leaf)
-    # res = cv2.bitwise_and(leaf, leaf, mask=fgmask)
-    # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
-    # ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY)
-
-
-    
-def detectTrim(leaf):
-    pass
-
-# https://code.likeagirl.io/finding-dominant-colour-on-an-image-b4e075f98097
-
-def find_histogram(clt):
-    """
-    create a histogram with k clusters
-    :param: clt
-    :return:hist
-    """
-    numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
-    (hist, _) = np.histogram(clt.labels_, bins=numLabels)
-
-    hist = hist.astype("float")
-    hist /= hist.sum()
-
-    return hist
-    
-def findColor(hist, centroids):
-    maxPerc = None
-    comCol = None
-    for (percent, color) in zip(hist, centroids):
-        if maxPerc == None:
-            maxPerc = percent
-            comCol = color
-        elif percent > maxPerc:
-            maxPerc = percent
-            comCol = color
-    
-    maxPerc2 = None
-    comCol2 = comCol  
-    for (percent, color) in zip(hist, centroids):
-        if comCol2.all() == comCol.all() and color.astype("uint8").tolist() != comCol.astype("uint8").tolist():
-            maxPerc2 = percent
-            comCol2 = color
-        elif color.astype("uint8").tolist() != comCol.astype("uint8").tolist() and percent > maxPerc2:
-            maxPerc2 = percent
-            comCol2 = color
-        
-    color = comCol2.astype("uint8").tolist()
-    return color
-
-def detectColor(leaf):
-    img = cv2.imread(leaf)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    
-    img = img.reshape((img.shape[0] * img.shape[1],3)) #represent as row*column,channel number
-    clt = KMeans(n_clusters=4) #cluster number
-    clt.fit(img)
-    
-    hist = find_histogram(clt)
-    col = tuple(findColor(hist, clt.cluster_centers_))
-    return str(col)+ " is the most common color in this leaf."
-
-print(detectColor("leafdemo.jpg"))
-
-
-def detectComposite(leaf):
-    pass
-    
 
 
 ## Countouring 
