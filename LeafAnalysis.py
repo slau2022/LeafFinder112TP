@@ -109,16 +109,116 @@ totalLeafDict = {}
 for i in range(len(northEastLeaves)):
     totalLeafDict[northEastLeaves[i]] = [leafSciNames[i], northEastLeavesimg[i*3]]
 
+## Trees by State
+# stateDict = {}
+# for leaf in totalLeafDict:
+#     sciname = totalLeafDict[leaf][0]
+#     g = None
+#     s = None
+#     for word in sciname.split(" "):
+#         if g == None:
+#             g = word
+#         else:
+#             s = word
+#         
+#     leafurl = "http://leafsnap.com/species/"+g+"%20"+s+"/"
+#     website = requests.get(leafurl)
+#     source = website.text
+#     parser = BeautifulSoup(source,'html.parser')
+#     leafDescrip = ""
+#     states = ""
+#     count = 1
+#     for descrip in parser.find_all("div"):
+#         if "Presence in US" in descrip.text:
+#             states = descrip.text
+#     
+#     states = states.replace("Presence in US:","")
+#     states = states.strip()
+#     for state in states.split(" "):
+#         if "," in state:
+#             state = state[:len(state)-1]
+#         if state not in stateDict:
+#             stateDict[state] = [leaf]
+#         else:
+#             stateDict[state].append(leaf)
+# 
+# stateDict["IN"] = stateDict["INKS"]
+# stateDict["KS"] = stateDict["INKS"]
+# stateDict["PA"] = stateDict["PE"]
+# stateDict["AL"].append(stateDict["Al"])
+# 
+# del stateDict["Not"]
+# del stateDict["native"]
+# del stateDict["to"]
+# del stateDict["the"]
+# del stateDict["US"]
+# del stateDict["but"]
+# del stateDict["widely"]
+# del stateDict["cultivated."]
+# del stateDict[""]
+# del stateDict["PE"]
+# del stateDict["Al"]
+# del stateDict["INKS"]
+
+                # if "Presence in US" in descrip:
+                # leafDescrip += descrip.text.strip()
+                
+            # return leafDescrip
+    
+##Find a leaf's description
+def leafDescrip(leaf, dict = totalLeafDict):
+    sciname = dict[leaf][0]
+    g = None
+    s = None
+    for word in sciname.split(" "):
+        if g == None:
+            g = word
+        else:
+            s = word
+        
+    leafurl = "http://leafsnap.com/species/"+g+"%20"+s+"/"
+    print(leafurl)
+    website = requests.get(leafurl)
+    source = website.text
+    parser = BeautifulSoup(source,'html.parser')
+    leafDescrip = ""
+    for descrip in parser.find_all(class_="description"):
+        leafDescrip += descrip.text.strip()
+        
+    return leafDescrip
+
 ## Get Trees in a Family
 #enter family name into this function and it will return a dictionary of the
 #trees mapped to its leaf picture link
 def findTreeImages(family, dict = totalLeafDict):
     answer = {}
     for tree in dict:
-        if family in tree:
+        if family.lower() in tree.lower():
             answer[tree] = dict[tree]
-        
-    return answer
+    if len(answer) == 0:
+        return "No tree found"
+    else:
+        return answer
+
+def findTreeSci(sciname, dict = totalLeafDict):
+    answer = {}
+    for tree in dict:
+        if sciname.lower() in dict[tree][0].lower():
+            answer[tree] = dict[tree]
+    if len(answer) == 0:
+        return "No tree found"
+    else:
+        return answer
+
+def findSpecies(comName, dict = totalLeafDict):
+    answer = {}
+    for tree in dict:
+        if comName.lower() == tree.lower():
+            answer[tree] = dict[tree]
+    if len(answer) == 0:
+        return "No tree found"
+    else:
+        return answer
 
 ## Fetch Generic Outline [NEEDS WORK]
 #function will return image of just outlines of an image
@@ -134,98 +234,3 @@ def findOutLines(img):
         cv2.waitKey(0)
     return edges
 
-## Isolating parts within a Green Color Range
-
-def convertHSV(rgb):
-    rP = rgb[0]/255
-    gP = rgb[1]/225
-    bP = rgb[2]/225
-    cmax = max((rP,gP,bP))
-    cmin = min((rP,gP,bP))
-    V = Cmax
-    cD = cmax-cmin
-    if cD == 0:
-        H = 0
-    elif cmax == rP:
-        H = 60 * (((gP-bP)/cD)%6)
-    elif cmax == gP:
-        H = 60 * (((bP-rP)/cD)+2)
-    elif cmax == bP:
-        H = 60 * (((rP-gP)/cD)+4)
-    
-    if cmax == 0:
-        S = 0
-    else:
-        S = cD/cmax
-    
-    V = V/100*255
-    S = S/100*255
-    
-    return (H,S,V)
-
-def isolateColor(lower, upper):
-    #isolates colors in range, upper is rgb
-    img = cv2.imread("leafdemo.jpg")
-    hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-    lowerGreen = np.array(lower) #[0,100,0]
-    upperGreen = np.array(upper) #placeholder range [120,255,127]
-    mask = cv2.inRange(hsv, lowerGreen, upperGreen)
-    res = cv2.bitwise_and(img,img,mask=mask)
-    cv2.imshow("only one color", res)
-    cv2.waitKey(0)
-
-
-## Find Most Common Color
-# https://code.likeagirl.io/finding-dominant-colour-on-an-image-b4e075f98097
-
-def find_histogram(clt):
-    """
-    create a histogram with k clusters
-    :param: clt
-    :return:hist
-    """
-    numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
-    (hist, _) = np.histogram(clt.labels_, bins=numLabels)
-
-    hist = hist.astype("float")
-    hist /= hist.sum()
-
-    return hist
-    
-def findColor(hist, centroids):
-    maxPerc = None
-    comCol = None
-    for (percent, color) in zip(hist, centroids):
-        if maxPerc == None:
-            maxPerc = percent
-            comCol = color
-        elif percent > maxPerc:
-            maxPerc = percent
-            comCol = color
-    
-    maxPerc2 = None
-    comCol2 = comCol  
-    for (percent, color) in zip(hist, centroids):
-        if comCol2.all() == comCol.all() and color.astype("uint8").tolist() != comCol.astype("uint8").tolist():
-            maxPerc2 = percent
-            comCol2 = color
-        elif color.astype("uint8").tolist() != comCol.astype("uint8").tolist() and percent > maxPerc2:
-            maxPerc2 = percent
-            comCol2 = color
-        
-    color = comCol2.astype("uint8").tolist()
-    return color
-
-def detectColor(leaf):
-    img = cv2.imread(leaf)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    
-    img = img.reshape((img.shape[0] * img.shape[1],3)) #represent as row*column,channel number
-    clt = KMeans(n_clusters=4) #cluster number
-    clt.fit(img)
-    
-    hist = find_histogram(clt)
-    col = tuple(findColor(hist, clt.cluster_centers_))
-    return str(col)+ " is the most common color in this leaf."
-
-# print(detectColor("leafdemo.jpg"))
