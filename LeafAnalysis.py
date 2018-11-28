@@ -110,60 +110,57 @@ for i in range(len(northEastLeaves)):
     totalLeafDict[northEastLeaves[i]] = [leafSciNames[i], northEastLeavesimg[i*3]]
 
 ## Trees by State
-# stateDict = {}
-# for leaf in totalLeafDict:
-#     sciname = totalLeafDict[leaf][0]
-#     g = None
-#     s = None
-#     for word in sciname.split(" "):
-#         if g == None:
-#             g = word
-#         else:
-#             s = word
-#         
-#     leafurl = "http://leafsnap.com/species/"+g+"%20"+s+"/"
-#     website = requests.get(leafurl)
-#     source = website.text
-#     parser = BeautifulSoup(source,'html.parser')
-#     leafDescrip = ""
-#     states = ""
-#     count = 1
-#     for descrip in parser.find_all("div"):
-#         if "Presence in US" in descrip.text:
-#             states = descrip.text
-#     
-#     states = states.replace("Presence in US:","")
-#     states = states.strip()
-#     for state in states.split(" "):
-#         if "," in state:
-#             state = state[:len(state)-1]
-#         if state not in stateDict:
-#             stateDict[state] = [leaf]
-#         else:
-#             stateDict[state].append(leaf)
-# 
-# stateDict["IN"] = stateDict["INKS"]
-# stateDict["KS"] = stateDict["INKS"]
-# stateDict["PA"] = stateDict["PE"]
-# stateDict["AL"].append(stateDict["Al"])
-# 
-# del stateDict["Not"]
-# del stateDict["native"]
-# del stateDict["to"]
-# del stateDict["the"]
-# del stateDict["US"]
-# del stateDict["but"]
-# del stateDict["widely"]
-# del stateDict["cultivated."]
-# del stateDict[""]
-# del stateDict["PE"]
-# del stateDict["Al"]
-# del stateDict["INKS"]
+stateDict = {}
+for leaf in totalLeafDict:
+    sciname = totalLeafDict[leaf][0]
+    g = None
+    s = None
+    for word in sciname.split(" "):
+        if g == None:
+            g = word
+        else:
+            s = word
+        
+    leafurl = "http://leafsnap.com/species/"+g+"%20"+s+"/"
+    website = requests.get(leafurl)
+    source = website.text
+    parser = BeautifulSoup(source,'html.parser')
+    leafDescrip = ""
+    states = ""
+    count = 1
+    for descrip in parser.find_all("div"):
+        if "Presence in US" in descrip.text:
+            states = descrip.text
+    
+    states = states.replace("Presence in US:","")
+    states = states.strip()
+    for state in states.split(" "):
+        if "," in state:
+            state = state[:len(state)-1]
+        if state not in stateDict:
+            stateDict[state] = [leaf]
+        else:
+            stateDict[state].append(leaf)
 
-                # if "Presence in US" in descrip:
-                # leafDescrip += descrip.text.strip()
-                
-            # return leafDescrip
+stateDict["IN"] = stateDict["INKS"]
+stateDict["KS"] = stateDict["INKS"]
+stateDict["PA"] = stateDict["PE"]
+stateDict["AL"].append(stateDict["Al"][0])
+
+del stateDict["Not"]
+del stateDict["native"]
+del stateDict["to"]
+del stateDict["the"]
+del stateDict["US"]
+del stateDict["but"]
+del stateDict["widely"]
+del stateDict["cultivated."]
+del stateDict[""]
+del stateDict["PE"]
+del stateDict["Al"]
+del stateDict["INKS"]
+
+            
     
 ##Find a leaf's description
 def leafDescrip(leaf, dict = totalLeafDict):
@@ -219,6 +216,18 @@ def findSpecies(comName, dict = totalLeafDict):
         return "No tree found"
     else:
         return answer
+
+## Get trees by state
+def findTreeState(state, dict = stateDict, dict2 = totalLeafDict):
+    answer = {}
+    state = state.upper()
+    if state in dict:
+        trees = dict[state]
+        for tree in trees:
+            answer[tree] = dict2[tree]
+        return answer
+    else:
+        return "No tree found"
 
 ## Fetch Generic Outline [NEEDS WORK]
 #function will return image of just outlines of an image
