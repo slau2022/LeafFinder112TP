@@ -10,6 +10,7 @@ from sklearn.cluster import KMeans
 from urllib import *
 
 ## Webscraping Leaf Types Information
+# """How to webscrape by class:https://codeburst.io/web-scraping-101-with-python-beautiful-soup-bb617be1f486"""
 
 #Getting the database for types of leaves
 leafData = "https://gardenerdy.com/different-kinds-of-leaves"

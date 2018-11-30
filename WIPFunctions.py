@@ -21,25 +21,21 @@ Things to do:
 """
 
 ## Isolates leaf from background that is not white
+# """Syntax for how to threshold: https://docs.opencv.org/3.4/d7/d4d/tutorial_py_thresholding.html"""
 #returns contours of a leaf with white background
 def betterIsolation(leaf):
     #returns contours of the leaf
     ph = cv2.imread(leaf)
-
     ph = cv2.resize(ph, (300,500))
     ph = cv2.fastNlMeansDenoising(ph)
-    
     ph = cv2.cvtColor(ph, cv2.COLOR_BGR2GRAY)
-    
-    
     th3 = cv2.bitwise_not(ph) #isolate just the leaf
-
     ret, th3 = cv2.threshold(th3,15,255,cv2.THRESH_BINARY)#get rid of innards of leaf
 
     # th3 = cv2.adaptiveThreshold(th3,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
                 # cv2.THRESH_BINARY,11,2) #get outline of leaf
-    # cv2.imshow("when you try your best", th3)
-    # cv2.waitKey(0)
+    cv2.imshow("when you try your best", th3)
+    cv2.waitKey(0)
     # can = cv2.Canny(th3, 300, 600)
 
     
@@ -53,6 +49,7 @@ def betterIsolation(leaf):
 
 
 def backgroundElim(frame):
+    # """Syntax for using MOG2: https://docs.opencv.org/3.4/db/d5c/tutorial_py_bg_subtraction.html"""
     bgSubThreshold = 50
     blurValue = 41
     threshold = 60
@@ -64,11 +61,9 @@ def backgroundElim(frame):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
     ret, thresh = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY)
-    cv2.imshow("blur", res)
-    cv2.waitKey(0)
-    
-    
-# 
+    # cv2.imshow("blur", res)
+    # cv2.waitKey(0)
+
 # backgroundElim("leafbg.jpg")
 
     # bgModel = cv2.BackgroundSubtractorMOG2(0, bgSubThreshold)
@@ -78,10 +73,11 @@ def backgroundElim(frame):
     # blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
     # ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY)
 
+
 #[NOT WORKING] 
-#Template from GitHub Autonomous Garden 
 #To find contours from a nonwhite background
 def greenOutline(rlow,rhigh,glow,ghigh,blow,bhigh):
+    # """Template from GitHub Autonomous Garden: https://github.com/CodingEZ/Automated-Garden """
     img = cv2.imread('leafdemo.jpg', 1)
     
     r = (rlow, rhigh)
@@ -130,7 +126,8 @@ def greenOutline(rlow,rhigh,glow,ghigh,blow,bhigh):
 
 ## Identify major shape of a leaf    
 def compareOutlines(leaf1, leaf2):
-    
+    # """Syntax how to use cv2.matchshapes(): https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contours_more_functions/py_contours_more_functions.html"""
+
     # ph = cv2.imread(leaf1) #leaf1
     # ph2 = cv2.imread(leaf2) #leaf2
     # ph = cv2.resize(ph, (300, 500))
@@ -162,7 +159,7 @@ def compareOutlines(leaf1, leaf2):
     cont2 = betterIsolation(leaf2)
     
     ret = cv2.matchShapes(cont[0],cont2[0],1,0.0)
-    # print(ret)
+    # print(ret) 
     # cv2.drawContours(img, cont, -1, (255,0,255), 3)
     # cv2.drawContours(img2, cont2, -1, (255,0,255), 3)
     # print(ret, retsame)
@@ -174,6 +171,7 @@ def compareOutlines(leaf1, leaf2):
     return ret
 
 def analyzeLeaf(leaf):
+#best value algorithm
     leaftypes = ["Fanned","Sinuate", "Lobed", "Heartshaped", "Ovoid", "Triangular","Rounded","Lanceolate"]
     winValue = None
     winLeaf = None
@@ -182,10 +180,10 @@ def analyzeLeaf(leaf):
         closeValue = 0
         for num in range(1,4):
             other = "LeafShapescopy/"+feuille+"/"+feuille+str(num)+".jpg"
-            # print(other)
+            print(other)
             closeValue += compareOutlines(leaf, other )
         closeValue = closeValue/3 #averages the values for each type
-        # print(closeValue)
+        print(closeValue)
         if winValue == None:
             winValue = closeValue
             winLeaf = feuille
@@ -195,7 +193,7 @@ def analyzeLeaf(leaf):
     
     return winLeaf
         
-# print(analyzeLeaf("oak.jpg"))
+# print(analyzeLeaf("oak2.jpg"))
 
 # ph = cv2.imread("leaftrial.jpg")
 # ph = cv2.cvtColor(ph, cv2.COLOR_BGR2GRAY)
@@ -208,7 +206,7 @@ def analyzeLeaf(leaf):
 #https://www.pyimagesearch.com/2014/04/07/building-pokedex-python-indexing-sprites-using-shape-descriptors-step-3-6/
 
 ## Trying to find "lobes"
-#https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_feature2d/py_features_harris/py_features_harris.html
+    # """Syntax on how to find corners: #https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_feature2d/py_features_harris/py_features_harris.html"""
 def detectCorners(leaf):
     filename = leaf
     
@@ -231,9 +229,9 @@ def detectCorners(leaf):
     # if cv2.waitKey(0) & 0xff == 27:
     #     cv2.destroyAllWindows()
 
-#https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contours_more_functions/py_contours_more_functions.html
-# detectCorners("leaftrial.jpg")
 
+# detectCorners("leaftrial.jpg")
+# """Syntax on how to use countour hull: https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_contours/py_contours_more_functions/py_contours_more_functions.html"""
 def detectLobes(leaf):
     img = cv2.imread(leaf)
     img_gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -259,7 +257,7 @@ def detectLobes(leaf):
 # detectLobes("leaftrial.jpg")
 
 ## Isolating parts within a Green Color Range
-
+#colors are different between thresholding a color between a range
 def convertHSV(rgb):
     rP = rgb[0]/255
     gP = rgb[1]/225
@@ -287,7 +285,9 @@ def convertHSV(rgb):
     
     return (H,S,V)
 
+
 def isolateColor(lower, upper):
+# """How to use inrange to isolate color: https://www.geeksforgeeks.org/detection-specific-colorblue-using-opencv-python/"""
     #isolates colors in range, upper is rgb
     img = cv2.imread("leafdemo.jpg")
     hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
@@ -300,14 +300,9 @@ def isolateColor(lower, upper):
 
 
 ## Find Most Common Color
-# https://code.likeagirl.io/finding-dominant-colour-on-an-image-b4e075f98097
+# """How to analyze pixel colors of an image from: https://code.likeagirl.io/finding-dominant-colour-on-an-image-b4e075f98097"""
 
 def find_histogram(clt):
-    """
-    create a histogram with k clusters
-    :param: clt
-    :return:hist
-    """
     numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
     (hist, _) = np.histogram(clt.labels_, bins=numLabels)
 
