@@ -17,7 +17,7 @@ import string
 
 
 ####################################
-# Interface (taken from 15112 template)
+# """ Interface (taken from 15112 template): https://www.cs.cmu.edu/~112/notes/notes-animations-part1.html"""
 ####################################
 
 #creating personal button class
@@ -50,14 +50,16 @@ def init(data, root):
     data.drawSearch = ""
     data.drawSciSearch = ""
     data.comNameSearch = ""
+    data.state = ""
     data.notFound = False
     data.notes = ""
     data.reformNotes = ""
+    data.stateDescrip = ""
    
     data.searchFam = False
     data.searchSci = False
     data.searchCom = False
-    
+    data.searchState = False
     data.photoCoords ={}
     
     notes = Text(root, height = 450, width = 150)
@@ -94,9 +96,11 @@ def mousePressed(event, data, root):
                 data.searchFam = True
                 data.searchSci = False
                 data.newFamily = False
+                data.searchState = False
                 
                 data.families = True
                 data.analyze = False
+                
                 
             elif button.text == "Search by Scientific Name":
                 print("scifam")
@@ -106,14 +110,24 @@ def mousePressed(event, data, root):
                 
                 data.families = True
                 data.analyze = False
+                data.searchState = False
             elif button.text == "Search by Common Name":
-                print("comnam")
                 data.searchCom = True
                 data.searchFam = False
                 data.searchSci = False
+                data.searchState = False
                 
                 data.families = True
                 data.analyze = False
+            elif button.text == "Search by State":
+                data.searchCom = False
+                data.searchFam = False
+                data.searchSci = False
+                data.searchState = True
+                
+                data.families = True
+                data.analyze = False
+                
             elif button.text == "Upload":
                 print("upload")
                 filePath = str(filedialog.askopenfilename())
@@ -140,9 +154,12 @@ def keyPressed(event, data):
             data.drawSciSearch += event.keysym
         elif data.searchCom:
             data.comNameSearch += event.keysym
+        elif data.searchState:
+            data.state += event.keysym
     elif event.keysym == "Return":
         data.photoCoords = {}
         if data.searchFam:
+            data.stateDescrip = ""
             data.listPhotos = []
             maybeList = findTreeImages(data.drawSearch)
             if type(maybeList) == str:
@@ -157,6 +174,7 @@ def keyPressed(event, data):
                 data.notFound = False
                 data.newFamily = True
         elif data.searchSci:
+            data.stateDescrip = ""
             data.listPhotos = []
             maybeList = findTreeSci(data.drawSciSearch)
             if type(maybeList) == str:
@@ -172,6 +190,7 @@ def keyPressed(event, data):
                 data.notFound = False
                 data.newFamily = True
         elif data.searchCom:
+            data.stateDescrip = ""
             data.listPhotos = []
             maybeList = findSpecies(data.comNameSearch)
             if type(maybeList) == str:
@@ -186,6 +205,25 @@ def keyPressed(event, data):
                 data.analyze = False
                 data.notFound = False
                 data.newFamily = True
+        elif data.searchState:
+            data.listPhotos = []
+            data.reformNotes = ""
+            maybeList = findTreeState(data.state)
+            if type(maybeList) == str:
+                data.notFound = True
+                data.families = False
+                data.analyze = False
+            elif type(maybeList) == dict:
+                data.stateDescrip = "Trees found in "+ data.state
+                
+                data.comNameSearch = ""
+                data.listNames = maybeList
+                
+                data.families = True
+                data.analyze = False
+                data.notFound = False
+                data.newFamily = True
+            
         
     elif event.keysym == "BackSpace":
         if data.searchFam:
@@ -194,6 +232,8 @@ def keyPressed(event, data):
             data.drawSciSearch = data.drawSciSearch[:len(data.drawSciSearch)-1]
         elif data.searchCom:
             data.comNameSearch = data.comNameSearch[:len(data.comNameSearch)-1]
+        elif data.searchState:
+            data.state = data.state[:len(data.state)-1]
     elif event.keysym == "space":
         if data.searchFam:
             data.drawSearch += " "
@@ -201,6 +241,8 @@ def keyPressed(event, data):
             data.drawSciSearch += " "
         elif data.searchCom:
             data.comNameSearch += " "
+        elif data.searchState:
+            data.state += " "
     
 
 def timerFired(data):
@@ -226,6 +268,7 @@ def redrawAll(canvas, data):
     canvas.create_text(data.cWidth-200+50, 50, font = "Arial 11", anchor = NW, text = data.drawSearch)
     canvas.create_text(data.cWidth-200+50, 110, font = "Arial 11", anchor = NW, text = data.drawSciSearch)
     canvas.create_text(data.cWidth-200+50, 170, font = "Arial 11", anchor = NW, text = data.comNameSearch)
+    canvas.create_text(data.cWidth-200+50, 230, font = "Arial 11", anchor = NW, text = data.state)
 
     
     
@@ -245,6 +288,7 @@ def redrawAll(canvas, data):
     canvas.create_rectangle(data.cWidth-200+25, 300, data.cWidth-25, 680, fill = "white")
     canvas.create_text(data.cWidth-200+30, 305,anchor=NW, text = "Notes:", font = "Arial 12 bold")
     canvas.create_text(data.cWidth-200+30, 315, anchor =NW, text = data.reformNotes)
+    canvas.create_text(data.cWidth-200+30, 315, anchor =NW, text = data.stateDescrip)
     count = 0
     # print(data.listNames)
     if data.families:
