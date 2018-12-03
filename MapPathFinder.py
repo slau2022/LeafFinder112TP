@@ -1,7 +1,10 @@
 from tkinter import *
 from PIL import ImageTk,Image  
 import math
-from TreePathFinder import *
+# from TreePathFinder import *
+from TreePathFinderMoreEfficient import *
+
+
 class Destination(object):
     def __init__(self, coordx, coordy, color):
         self.x = coordx
@@ -84,7 +87,8 @@ def mousePressed(event, data):
     
 def keyPressed(event, data):
     if event.keysym == "Return" and None not in data.startEnd and len(data.trees) != 0:
-        data.path = findPath(data.startEnd[0], data.startEnd[1],data.trees)
+        # data.path = findPath(data.startEnd[0], data.startEnd[1],data.trees)
+        length, data.path = findShortestPath(data.startEnd[0], data.startEnd[1],None,[])
         print(data.path)
     elif event.keysym == "c":
         data.path = []
