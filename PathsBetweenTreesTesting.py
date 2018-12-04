@@ -92,7 +92,9 @@ def findPathNearStart(start,tree, pointCoords = coordPoints):
             bestPath = path
     return bestPath
 
-
+########
+#WORKS: Returns dictionary of trees listed to their possible locations for the trip
+########
 
 #returns a list of the nearest path to current position and nearest path to destination with the trees you want
 def possibleMoves(start, end, treeSet):
@@ -104,53 +106,222 @@ def possibleMoves(start, end, treeSet):
     return possMoves
     """maps every tree to shortest possible places to see it"""
 
-def possibleMovesStagnant(end, treeSet):
-    possMoves = {}
-    for tree in treeSet:
-        # possMoves[tree] = (findPathNearStart(start, tree))
-        possMoves[tree] = (findPathNearDest(end,tree))
-    return possMoves
+#########
+#WORKS: Takes the current possibleMoves dictionary and creates a set out of them
+#########
+def updateMoves(possMoves):
+    moves = set()
+    for key in possMoves:
+        moves.update(possMoves[key])
+    return moves
+
+def treesLeft(possMoves):
+    count = 0
+    for tree in possMoves:
+        count +=1
+    return count
+
+######################
+#This definitely works
+######################
+#taken is a set of paths that should not be used
+
+#for some reason, not responding to outside restriction, still taking the path, just not listing it
+#anytime come across a path that's been taken already, adds the first two paths to the end
+def findShortestPath(start,end,minlength, pathListWin, outsideTaken, pathList = [], possibleMoves = dictConnPoints):
+    if start == end:
+        minlength = pathLength(pathList)
+        pathListWin = copy.deepcopy(pathList)
+        return (minlength, pathListWin)
+    else:
+        for nextPoint in possibleMoves[start]:
+            first = min(start, nextPoint)
+            other = max(start, nextPoint)
+            path = str(first)+"to"+str(other)
+            taken = copy.deepcopy(pathList)
+            pathList.append(path)
+            if path not in outsideTaken:
+                if (minlength == None or pathLength(pathList)<minlength) and path not in taken:
+                    taken.append(path)
+                    minlengthNew, pathListWinNew = findShortestPath(nextPoint, end, minlength, pathListWin,outsideTaken, pathList = copy.copy(pathList))
+                    minlength = minlengthNew
+                    pathListWin = pathListWinNew
+                    taken.remove(path)
+                    pathList.remove(path)
+                else:
+                    pathList.remove(path)
+            else:
+                pathList.remove(path)
+        return (minlength, pathListWin)
+        
+########
+#WORKS: Finds path to two sides of the target path
+########
 
 #find shortest path to the first point of the path
-def findShortestPathOne(start, pathEnd, minlength, pathListWin, path = [], possibleMoves = dictConnPoints, taken = set()):
-    if start in int(pathEnd.split("to")[0]):
-        minlength = len(path)
-        pathListWin = copy.deepcopy(path)
+def findShortestPathOne(start, pathTarget, minlength, pathListWin, pathList = [], possibleMoves = dictConnPoints, taken = set()):
+    # print(int(pathTarget.split("to")[0]))
+    if start == int(pathTarget.split("to")[0]):
+        minlength = pathLength(pathList)
+        pathListWin = copy.deepcopy(pathList)
+        pathListWin.append(pathTarget)
         return (minlength, pathListWin)
     else:
         for nextPoint in possibleMoves[start]:
             first = min(start, nextPoint)
             other = max(start, nextPoint)
             path = str(first)+"to"+str(other)
+            pathList.append(path)
             if (minlength == None or pathLength(pathList)<minlength) and path not in taken:
                 taken.add(path)
-                minlengthNew, pathListWinNew = findShortestPath(nextPoint, pathEnd.split("to"), minlength, pathListWin, path = path)
+                minlengthNew, pathListWinNew = findShortestPathOne(nextPoint, pathTarget, minlength, pathListWin, pathList = pathList)
                 minlength = minlengthNew
                 pathListWin = pathListWinNew
                 taken.remove(path)
                 pathList.remove(path)
             else:
                 pathList.remove(path)
-        return (minLength, pathListWin)
+        return (minlength, pathListWin)
 
 #find shortest path to the second point of the path
-def findShortestPathTwo(start, pathEnd, minlength, pathListWin, path = [], possibleMoves = dictConnPoints, taken = set()):
-    if start in int(pathEnd.split("to")[0]):
-        minlength = len(path)
-        pathListWin = copy.deepcopy(path)
+def findShortestPathTwo(start, pathTarget, minlength, pathListWin, pathList = [], possibleMoves = dictConnPoints, taken = set()):
+    # print(pathTarget)
+    if start == int(pathTarget.split("to")[1]):
+        minlength = pathLength(pathList)
+        pathListWin = copy.deepcopy(pathList)
+        pathListWin.append(pathTarget)
         return (minlength, pathListWin)
     else:
         for nextPoint in possibleMoves[start]:
             first = min(start, nextPoint)
             other = max(start, nextPoint)
             path = str(first)+"to"+str(other)
+            pathList.append(path)
             if (minlength == None or pathLength(pathList)<minlength) and path not in taken:
                 taken.add(path)
-                minlengthNew, pathListWinNew = findShortestPath(nextPoint, pathEnd.split("to"), minlength, pathListWin, path = path)
+                minlengthNew, pathListWinNew = findShortestPathTwo(nextPoint, pathTarget, minlength, pathListWin, pathList = pathList)
                 minlength = minlengthNew
                 pathListWin = pathListWinNew
                 taken.remove(path)
                 pathList.remove(path)
             else:
                 pathList.remove(path)
-        return (minLength, pathListWin)
+        return (minlength, pathListWin)
+
+#######
+#WORKS: Keeps track of other trees seen on the way to destination
+#######
+#returns a list of trees from your target list that have been seen in a path already
+def otherTreesSeen(pathList, treeSet, dict = dictPaths):
+    seen = {}
+    for path in pathList:
+        for tree in dict[path]:
+            if tree in treeSet:
+                seen.add(tree)
+    return seen
+    
+#So i got to pass down this list of trees mapped to their locations try 1 of the two of them
+    #when i'm trying one of the two of them I have two more options, one side or the other side
+    #try one side then back track
+    #try the other side then back track
+        #Then each time I move down a depth, I remove that tree from that dictionary and from the set
+        #then I update the locations of the trees i want to go to(recall possibleMoves)
+#then back track to the choice of the tree
+#also have to keep track of current point
+
+#what if two trees belong to the same spot path, i think should be fine...?just also check if you see any of the other trees on that path and then remove them too
+#what if a tree's nearest spot is also its farthest
+#tree's spot is closest and farthest, should be cancelled b/c sets
+
+#for all shortest path finders, have to add another parameter of paths you can't take anymore
+def findMegaPaths(possMoves, start, end, minlength, treeSet, pathListWin, pathList = []):
+    if start == end and len(treeSet) == 0:
+        minlength = pathLength(pathList)
+        pathListWin = copy.deepcopy(pathList)
+        return (minlength, pathListWin)
+    else:
+        #once you've seen all the trees, find shortest path to the end
+        if len(possMoves) == 0:
+            length, lastpath = findShortestPath(start, end, None, [], set(copy.deepcopy(pathList))) #pathlist put in as taken 
+            slice = len(pathList)
+            pathList.extend(lastpath)
+            if minlength == None or pathLength(pathList)<= minlength:
+                minlengthNew, pathListWinNew = findMegaPaths(possMoves, end, end, minlength, treeSet, pathListWin)
+                minlength = minlengthNew
+                pathListWin = copy.deepcopy(pathListWinNew)
+                pathList = pathList[:slice]
+            else:
+                pathList = pathList[:slice]
+        else:
+            possMoves = possibleMoves(start,end,treeSet)
+            print(possMoves)
+            
+            for treeLocation in possMoves:
+                for treeInstance in possMoves[treeLocation]:
+                    #try with the first side of the path
+                    #found the way to one side of the path
+                    length, maybeTheWay = findShortestPathOne(start, treeInstance, None, [])
+                    
+                    #save where you're adding in case the path doesn't work out
+                    slice = len(pathList) 
+                    pathList.extend(maybeTheWay)
+                    if minlength == None or pathLength(pathList) < minlength:
+                        save = {}
+                        save[treeLocation] = copy.copy(possMoves[treeLocation])
+                        del possMoves[treeLocation]
+                        treeSet.remove(treeLocation)
+                        #remove any other trees seen
+                        othersSeen = otherTreesSeen(copy.deepcopy(pathList), treeSet)
+                        for otherSeenTree in othersSeen:
+                            save[otherSeenTree] = d.copy(possMoves[otherSeenTree])
+                            del possMoves[otherSeenTree]
+                            treeSet.remove(otherSeenTree)
+                        #location is now on the other side of the path
+                        minlengthNew, pathListWinNew = findMegaPaths(possMoves, int(treeInstance.split("to")[1]), end, minlength,treeSet, pathListWin, pathList = copy.deepcopy(pathList))
+                        #update minlength and pathListWin
+                        minlength = minlengthNew
+                        pathListWin = copy.deepcopy(pathListWinNew)
+                        #put everything back
+                        for savedRemovedTree in save:
+                            possMoves[savedRemovedTree] = save[savedRemovedTree]
+                            treeSet.add(savedRemovedTree)
+                        save.clear()
+                        pathList = pathList[:slice]
+                    else:
+                        pathList = pathList[:slice]
+                    
+                    #do everything above but now with the second side of the path
+                    length, maybeTheWayAgain = findShortestPathTwo(start, treeInstance, None, [])
+                    sliceAgain = len(pathList)
+                    pathList.extend(maybeTheWayAgain)
+                    if minlength == None or pathLength(pathList) <minlength:
+                        save = {}
+                        save[treeLocation] = copy.copy(possMoves[treeLocation])
+                        del possMoves[treeLocation]
+                        treeSet.remove(treeLocation)
+                        othersSeen = otherTreesSeen(copy.deepcopy(pathList), treeSet)
+                        for otherSeenTree in othersSeen:
+                            save[otherSeenTree] = d.copy(possMoves[otherSeenTree])
+                            del possMoves[otherSeenTree]
+                            treeSet.remove(otherSeenTree)
+                        #location is now at the other side of the path
+                        minlengthNew, pathListWinNew = findMegaPaths(possMoves, int(treeInstance.split("to")[0]), end, minlength, treeSet, pathListWin, pathList = copy.deepcopy(pathList))
+                        minlength = minlengthNew
+                        pathListWin = copy.deepcopy(pathListWinNew)
+                        #put everything back
+                        for savedRemovedTree in save:
+                            possMoves[savedRemovedTree] = save[savedRemovedTree]
+                            treeSet.add(savedRemovedTree)
+                        save.clear()
+                        pathList = pathList[:sliceAgain]
+                    else:
+                        pathList = pathList[:sliceAgain]
+        return (minlength, pathListWin)
+        
+
+
+#finds path
+def findPath(start, end, treeSet):
+    possMoves = possibleMoves(start,end,treeSet)
+    min, win = findMegaPaths(possMoves, start, end, None, treeSet, [])
+    return win
