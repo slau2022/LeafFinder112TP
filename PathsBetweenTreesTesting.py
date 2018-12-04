@@ -164,7 +164,8 @@ def findShortestPathOne(start, pathTarget, minlength, pathListWin, pathList = []
     if start == int(pathTarget.split("to")[0]):
         minlength = pathLength(pathList)
         pathListWin = copy.deepcopy(pathList)
-        pathListWin.append(pathTarget)
+        if pathTarget not in pathListWin:
+            pathListWin.append(pathTarget)
         return (minlength, pathListWin)
     else:
         for nextPoint in possibleMoves[start]:
@@ -174,7 +175,7 @@ def findShortestPathOne(start, pathTarget, minlength, pathListWin, pathList = []
             pathList.append(path)
             if (minlength == None or pathLength(pathList)<minlength) and path not in taken:
                 taken.add(path)
-                minlengthNew, pathListWinNew = findShortestPathOne(nextPoint, pathTarget, minlength, pathListWin, pathList = pathList)
+                minlengthNew, pathListWinNew = findShortestPathOne(nextPoint, pathTarget, minlength, pathListWin, pathList = copy.deepcopy(pathList))
                 minlength = minlengthNew
                 pathListWin = pathListWinNew
                 taken.remove(path)
@@ -189,7 +190,8 @@ def findShortestPathTwo(start, pathTarget, minlength, pathListWin, pathList = []
     if start == int(pathTarget.split("to")[1]):
         minlength = pathLength(pathList)
         pathListWin = copy.deepcopy(pathList)
-        pathListWin.append(pathTarget)
+        if pathTarget not in pathListWin:
+            pathListWin.append(pathTarget)
         return (minlength, pathListWin)
     else:
         for nextPoint in possibleMoves[start]:
@@ -199,7 +201,7 @@ def findShortestPathTwo(start, pathTarget, minlength, pathListWin, pathList = []
             pathList.append(path)
             if (minlength == None or pathLength(pathList)<minlength) and path not in taken:
                 taken.add(path)
-                minlengthNew, pathListWinNew = findShortestPathTwo(nextPoint, pathTarget, minlength, pathListWin, pathList = pathList)
+                minlengthNew, pathListWinNew = findShortestPathTwo(nextPoint, pathTarget, minlength, pathListWin, pathList = copy.deepcopy(pathList))
                 minlength = minlengthNew
                 pathListWin = pathListWinNew
                 taken.remove(path)
@@ -238,15 +240,16 @@ def findMegaPaths(possMoves, start, end, minlength, treeSet, pathListWin, pathLi
     if start == end and len(treeSet) == 0:
         minlength = pathLength(pathList)
         pathListWin = copy.deepcopy(pathList)
+        # print("winner", pathListWin)
         return (minlength, pathListWin)
     else:
         #once you've seen all the trees, find shortest path to the end
         if len(possMoves) == 0:
-            length, lastpath = findShortestPath(start, end, None, [], set(copy.deepcopy(pathList))) #pathlist put in as taken 
+            length, lastpath = findShortestPath(start, end, None, [], set(copy.deepcopy(pathList))) #pathlist put in as taken  
             slice = len(pathList)
             pathList.extend(lastpath)
             if minlength == None or pathLength(pathList)<= minlength:
-                minlengthNew, pathListWinNew = findMegaPaths(possMoves, end, end, minlength, treeSet, pathListWin)
+                minlengthNew, pathListWinNew = findMegaPaths(possMoves, end, end, minlength, treeSet, pathListWin, pathList = copy.deepcopy(pathList))
                 minlength = minlengthNew
                 pathListWin = copy.deepcopy(pathListWinNew)
                 pathList = pathList[:slice]
@@ -254,7 +257,6 @@ def findMegaPaths(possMoves, start, end, minlength, treeSet, pathListWin, pathLi
                 pathList = pathList[:slice]
         else:
             possMoves = possibleMoves(start,end,treeSet)
-            print(possMoves)
             
             for treeLocation in possMoves:
                 for treeInstance in possMoves[treeLocation]:
@@ -323,5 +325,5 @@ def findMegaPaths(possMoves, start, end, minlength, treeSet, pathListWin, pathLi
 #finds path
 def findPath(start, end, treeSet):
     possMoves = possibleMoves(start,end,treeSet)
-    min, win = findMegaPaths(possMoves, start, end, None, treeSet, [])
+    min, win = findMegaPaths(copy.deepcopy(possMoves), start, end, None, treeSet, [])
     return win

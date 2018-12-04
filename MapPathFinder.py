@@ -89,7 +89,7 @@ def mousePressed(event, data):
 def keyPressed(event, data):
     if event.keysym == "Return" and None not in data.startEnd and len(data.trees) != 0:
         # data.path = findPath(data.startEnd[0], data.startEnd[1],data.trees)
-        length, data.path = findPath(data.startEnd[0], data.startEnd[1],data.trees)
+        data.path = findPath(data.startEnd[0], data.startEnd[1],data.trees)
         print(data.path)
     elif event.keysym == "c":
         data.path = []
