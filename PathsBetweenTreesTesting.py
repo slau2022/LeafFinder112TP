@@ -100,6 +100,7 @@ def findPathNearStart(start,tree, pointCoords = coordPoints):
 def possibleMoves(start, end, treeSet):
     possMoves = {}
     for tree in treeSet:
+        tree = tree.strip()
         pathNearStart = {findPathNearStart(start, tree)}
         pathNearDest = {findPathNearDest(end,tree)}
         possMoves[tree] = pathNearStart.union(pathNearDest)
@@ -215,7 +216,7 @@ def findShortestPathTwo(start, pathTarget, minlength, pathListWin, pathList = []
 #######
 #returns a list of trees from your target list that have been seen in a path already
 def otherTreesSeen(pathList, treeSet, dict = dictPaths):
-    seen = {}
+    seen = set()
     for path in pathList:
         for tree in dict[path]:
             if tree in treeSet:
@@ -275,7 +276,7 @@ def findMegaPaths(possMoves, start, end, minlength, treeSet, pathListWin, pathLi
                         #remove any other trees seen
                         othersSeen = otherTreesSeen(copy.deepcopy(pathList), treeSet)
                         for otherSeenTree in othersSeen:
-                            save[otherSeenTree] = d.copy(possMoves[otherSeenTree])
+                            save[otherSeenTree] = copy.copy(possMoves[otherSeenTree])
                             del possMoves[otherSeenTree]
                             treeSet.remove(otherSeenTree)
                         #location is now on the other side of the path
@@ -303,7 +304,7 @@ def findMegaPaths(possMoves, start, end, minlength, treeSet, pathListWin, pathLi
                         treeSet.remove(treeLocation)
                         othersSeen = otherTreesSeen(copy.deepcopy(pathList), treeSet)
                         for otherSeenTree in othersSeen:
-                            save[otherSeenTree] = d.copy(possMoves[otherSeenTree])
+                            save[otherSeenTree] = copy.copy(possMoves[otherSeenTree])
                             del possMoves[otherSeenTree]
                             treeSet.remove(otherSeenTree)
                         #location is now at the other side of the path
@@ -324,6 +325,8 @@ def findMegaPaths(possMoves, start, end, minlength, treeSet, pathListWin, pathLi
 
 #finds path
 def findPath(start, end, treeSet):
+    win = None
     possMoves = possibleMoves(start,end,treeSet)
+    print(possMoves)
     min, win = findMegaPaths(copy.deepcopy(possMoves), start, end, None, treeSet, [])
     return win

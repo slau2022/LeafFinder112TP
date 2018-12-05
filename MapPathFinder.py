@@ -45,7 +45,7 @@ def init(data):
     data.path = None
     data.buttons = []
     data.trees = set()
-    data.treeTypes = ["American Elm", "English Elm", "Siberian Elm", "Japanese Elm", "Cherries", "Holly Bush"," Red Oak"," Pin Oak", "Willow Oak", "Shingle Oak", "White Oak", "Witch Hazel Bush", "Japanese Maple", "Hedge Maple", "Red Maple", "American Sycamore", "London Planetree", "Tulip Poplar", "Honey Locust", "Black Locust", "Chinese Scholar", "Ash", "Osage Orange", "Ginkgo", "Crab Apple", "Hawthorn", "Pear", "Mulberry", "Peach", "Redbud", "Magnolia","Persian Ironwood", "Hornbeam", "Linden", "Dogwood"," Bald Cypress", "Dawn Redwood", "Smoke Tree", "Crape Myrtle", "Viburnum Bush", "Parasol", "Spruce"]
+    data.treeTypes = ["American Elm", "English Elm", "Siberian Elm", "Japanese Elm", "Cherries", "Holly Bush","Red Oak","Pin Oak", "Willow Oak", "Shingle Oak", "White Oak", "Witch Hazel Bush", "Japanese Maple", "Hedge Maple", "Red Maple", "American Sycamore", "London Planetree", "Tulip Poplar", "Honey Locust", "Black Locust", "Chinese Scholar", "Ash", "Osage Orange", "Ginkgo", "Crab Apple", "Hawthorn", "Pear", "Mulberry", "Peach", "Redbud", "Magnolia","Persian Ironwood", "Hornbeam", "Linden", "Dogwood"," Bald Cypress", "Dawn Redwood", "Smoke Tree", "Crape Myrtle", "Viburnum Bush", "Parasol", "Spruce"]
     count = 0
     x = 700
     for tree in data.treeTypes:
@@ -130,7 +130,6 @@ def redrawAll(canvas, data):
                     line[0] = data.points[int(point)-1]
                 elif line[1] == None:
                     line[1] = data.points[int(point)-1]
-            print(line)
             canvas.create_line(line[0][0]+10, line[0][1]+10, line[1][0]+10, line[1][1]+10, fill = "red")
             line = [None, None]
         
