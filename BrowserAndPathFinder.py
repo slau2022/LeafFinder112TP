@@ -339,6 +339,7 @@ def keyPressed(event, data):
                 data.leafImg = []
         else:
             if event.keysym == "c":
+                data.stopClicking = False
                 data.stopEverything = False
                 data.path = []
                 for button in data.buttons:
@@ -443,7 +444,7 @@ def redrawAll(canvas, data):
         canvas.create_text(750, 65, text = "1) Choose 1-3 trees you'd like to see on your walk", font = "Arial 14", anchor = NW)
         canvas.create_text(750, 80, text = "2) Click on your start and end points", font = "Arial 14", anchor = NW)
         canvas.create_text(750, 95,text = "3) Press enter and watch your path get drawn!(blue = tree on path)", anchor = NW, font = "Arial 14")
-        
+        canvas.create_text(750, 435, text = "4) To make a new path, press 'c'!", anchor = NW)
         
         for dest in data.destinations:
             point = data.destinations[dest]
@@ -452,8 +453,6 @@ def redrawAll(canvas, data):
         for button in data.buttons:
             canvas.create_rectangle(button.x,button.y,button.x+button.width,button.y+button.height, fill = button.color)
             canvas.create_text(button.x+button.width/2, button.y+button.height/2, text = button.text, font = "Arial 8")
-        
-        
         
         line = [None, None]
         if data.path != None:
