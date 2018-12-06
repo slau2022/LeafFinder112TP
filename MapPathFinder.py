@@ -3,7 +3,8 @@ from PIL import ImageTk,Image
 import math
 # from TreePathFinder import *
 # from TreePathFinderMoreEfficient import *
-from PathsBetweenTreesTesting import *
+# from PathsBetweenTreesTesting import *
+from TryingToGetRidOfAliasing import *
 
 
 class Destination(object):
@@ -45,14 +46,14 @@ def init(data):
     data.path = None
     data.buttons = []
     data.trees = set()
-    data.treeTypes = ["American Elm", "English Elm", "Siberian Elm", "Japanese Elm", "Cherries", "Holly Bush","Red Oak","Pin Oak", "Willow Oak", "Shingle Oak", "White Oak", "Witch Hazel Bush", "Japanese Maple", "Hedge Maple", "Red Maple", "American Sycamore", "London Planetree", "Tulip Poplar", "Honey Locust", "Black Locust", "Chinese Scholar", "Ash", "Osage Orange", "Ginkgo", "Crab Apple", "Hawthorn", "Pear", "Mulberry", "Peach", "Redbud", "Magnolia","Persian Ironwood", "Hornbeam", "Linden", "Dogwood"," Bald Cypress", "Dawn Redwood", "Smoke Tree", "Crape Myrtle", "Viburnum Bush", "Parasol", "Spruce"]
+    data.treeTypes = ["American Elm", "Siberian Elm", "Japanese Elm", "Cherries", "Holly Bush","Red Oak","Pin Oak", "Willow Oak", "Shingle Oak", "White Oak", "Witch Hazel Bush", "Japanese Maple", "Hedge Maple", "Red Maple", "American Sycamore", "London Planetree", "Tulip Poplar", "Honey Locust", "Black Locust", "Chinese Scholar", "Ash", "Osage Orange", "Ginkgo", "Crab Apple", "Hawthorn", "Pear", "Mulberry", "Peach", "Redbud", "Magnolia","Persian Ironwood", "Hornbeam", "Linden", "Dogwood","Bald Cypress", "Dawn Redwood", "Smoke Tree", "Crape Myrtle", "Viburnum Bush", "Parasol", "Spruce"]
     count = 0
-    x = 700
+    x = 750
     for tree in data.treeTypes:
-        if 40+25*count > 760:
+        if 150+25*count > 400:
             count = 0
-            x = 800
-        data.buttons.append(Button(x,40+25*count,25,100,tree,"white"))
+            x +=100
+        data.buttons.append(Button(x,150+25*count,25,100,tree,"white"))
         count +=1
     
 def mousePressed(event, data):
@@ -89,7 +90,7 @@ def mousePressed(event, data):
 def keyPressed(event, data):
     if event.keysym == "Return" and None not in data.startEnd and len(data.trees) != 0:
         # data.path = findPath(data.startEnd[0], data.startEnd[1],data.trees)
-        data.path = findPath(data.startEnd[0], data.startEnd[1],data.trees)
+        data.path = copy.copy(findPath(data.startEnd[0], data.startEnd[1],data.trees))
         print(data.path)
     elif event.keysym == "c":
         data.path = []
@@ -108,6 +109,10 @@ def keyPressed(event, data):
 def redrawAll(canvas, data):
     data.img = ImageTk.PhotoImage(Image.open("TompkinsMap.png"))
     canvas.create_image(0,0,image = data.img, anchor = NW)
+    canvas.create_text(750, 20, text = "Plan Your Walk!", font = "Arial 36", anchor = NW)
+    canvas.create_text(750, 65, text = "1) Choose 1-3 trees you'd like to see on your walk", font = "Arial 14", anchor = NW)
+    canvas.create_text(750, 80, text = "2) Click on your start and end points", font = "Arial 14", anchor = NW)
+    canvas.create_text(750, 95,text = "3) Press enter and watch your path get drawn!", anchor = NW, font = "Arial 14")
     # for i in range(20):
     #     canvas.create_line(0,i*40,800, i*40)
     #     canvas.create_line(i*40,0, i*40,800)
@@ -130,8 +135,22 @@ def redrawAll(canvas, data):
                     line[0] = data.points[int(point)-1]
                 elif line[1] == None:
                     line[1] = data.points[int(point)-1]
-            canvas.create_line(line[0][0]+10, line[0][1]+10, line[1][0]+10, line[1][1]+10, fill = "red")
+            canvas.create_line(line[0][0]+10, line[0][1]+10, line[1][0]+10, line[1][1]+10, fill = "red",width = 5)
             line = [None, None]
+    
+    highlightline = [None, None]
+    if data.path != None:
+        for tree in data.trees:
+            for path in pathsWithTree(tree):
+                if path in data.path:
+                    for point in path.split("to"):
+                        if highlightline[0] == None:
+                            highlightline[0] = data.points[int(point)-1]
+                        elif highlightline[1] == None:
+                            highlightline[1] = data.points[int(point)-1]
+                
+                    canvas.create_line(highlightline[0][0]+10, highlightline[0][1]+10, highlightline[1][0]+10, highlightline[1][1]+10, fill = "cyan", width = 5)
+                
         
 
 ####################################
@@ -176,4 +195,4 @@ def run(width=300, height=300):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-run(1200, 800)
+run(1250, 800)
