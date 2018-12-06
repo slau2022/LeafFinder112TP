@@ -1,0 +1,76 @@
+LEAF FINDER
+
+Description
+
+An application that can identify the type of tree a leaf is from based off of its shape, color and the region it was found in. Users will upload an image of a leaf and the additional regional information, then receive a description of the tree the leaf belongs to. The application will also supply an additional list of leaves that are similar in case its first guess isn't correct. Then users can navigate to these other leaves.
+
+Competitive Analysis
+
+There are various websites that allow users to identify the tree based on the leaf. These websites generally utilise a dichotomous key where users answer a series of questions about the leaf in order to narrow down the species of tree the leaf is from. My application will be using the same strategy to identify the tree, but the only user input would be an image of the leaf. Tracing through the dichotomous key would be completed based off the program’s analysis of the leaf image’s characteristics.
+There is an iOS app that can identify plants based off a picture. This application also provides a list of possible species the plant could be in case its first guess isn’t correct. My application will also provide the same.
+
+Structural Plan
+
+Upload Image
+Users will have to upload an image of a leaf.  Users will be prompted to upload a picture of the leaf in a certain way. The program should convert image to proper size and detect if there is a leaf or not.
+
+Identify Colors
+The program will algorithmically normalize the color of an image in order to more accurately associate certain colors with certain species of trees. The program will also take into account the time of year when analyzing colors.
+
+Identify Shape
+The program will create a basic contour of the leaf and compare that contour to the contours of leaves in the database or certain listed characteristics that would help trace through a dichotomous key.
+
+Return Tree Identification
+The program will collect a list of leaves that are similar to the uploaded image and display in main the tree species that matched the closest with the image.
+
+Algorithmic Plan
+
+The trickiest part of the project will be comparing the contour of the input leaf to all the contours in the database. There is a CV function that can compare contours. This function returns a numerical value that reflects two contours similarities. However, the difficult part will be compiling all of the data and increasing the efficiency.
+
+I plan to build this program incrementally first starting by creating a “leaf browser” type application where users can input a tree family and receive a list of ten or so different leaves under that family. Then from there I will start to build a database of the types of characteristics associated with each type of leaf. So the leaves would have the general description of “ [Type] leaf has [#] of points and are usually colored [#00FF00].” 
+
+
+Timeline Plan
+
+TP1
+Complete tech demo
+Complete TP1 deliverables
+Preliminary Code will include:
+	- function for color isolation
+	- function for creating leaf database
+	- function for finding outlines
+	- initial "leaf browser" interface
+
+Week 2
+- Create upload image functionality
+- Complete comparison between leaf contours
+- Complete comparison of leaf characteristics
+- Application should return images based off of characteristics analyzed from an uploaded image
+
+MVP:
+An interface that can...
+	- analyze an uploaded image
+	- list characteristics of leaf in image
+	- return a family of leaves in database and the family's general characteristics
+
+Week 3
+- Finalize user interface
+- create function to normalize HSV of image to more accurately identify color
+
+
+Version Control Plan 
+I have downloaded Github desktop and I’m pushing any changes to my LeafFinder repository (see GitHub screenshot).
+
+Module List
+
+Open CV
+Beautiful Soup
+Requests
+
+TP2 Updates
+After really struggling with creating accurate OpenCV functions, my project has changed to focus more on web scraping and creating browser type functionalities. The features of my project currently include being able to search for the leaves of trees by common name, common family names, and by scientific names. Users can also input their state and see a list of trees in their state.
+
+I will continue trying to fix my photo analysis functions but I will also be adding a path finder for some web-scraped park map. Users will input what trees they want to see and a path for the sightings will be generated. 
+
+TP3 Updates
+My project really switched directions after TP2. Since TP2 I constructed a recursive backtracking function to create paths to see certain trees through Tompkins Square Park. My project is now a combination of browsing through different trees by different categories (name, scientific name, state, and family) and also the path finding portion of planning out a walk through Tompkins Square Park.
