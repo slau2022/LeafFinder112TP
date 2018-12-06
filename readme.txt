@@ -11,4 +11,4 @@ Make sure you've installed the following modules:
 $ pip install beautifulsoup4
 $ pip in stall Pillow
 
-Download Leaf Finder from GitHub and run the "BrowserAndPathFinder.py" file!
+Download Leaf Finder from GitHub (https://github.com/slau2022/LeafFinder112TP) and run the "BrowserAndPathFinder.py" file!

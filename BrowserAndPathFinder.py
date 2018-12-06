@@ -71,6 +71,7 @@ def init(data):
     data.img = None
     data.imkey1 = None
     data.imkey2 = None
+    data.leafImg = []
     data.points = [(40,70), (140,60),(550,60), (660,70), (40,265), (80, 265),(280, 210), \
     (300, 110), (300, 190),(350,140),(400, 110), (400,190), (440, 110), (440, 210), (550, 210), \
     (440, 250),(580,280),(660,270),(350,300),(230,390),(40,485),(80,485),(170,455),(450,400),\
@@ -105,6 +106,7 @@ def init(data):
     #preventing any more clicking after three 
     data.stopClicking = False
     data.stopEverything = False
+    
     
 def mousePressed(event, data):
     # use event.x and event.y
@@ -334,6 +336,7 @@ def keyPressed(event, data):
                 data.startEnd = [None, None]
                 data.trees = set()
                 data.countRed = 0
+                data.leafImg = []
         else:
             if event.keysym == "c":
                 data.stopEverything = False
@@ -440,14 +443,6 @@ def redrawAll(canvas, data):
         canvas.create_text(750, 65, text = "1) Choose 1-3 trees you'd like to see on your walk", font = "Arial 14", anchor = NW)
         canvas.create_text(750, 80, text = "2) Click on your start and end points", font = "Arial 14", anchor = NW)
         canvas.create_text(750, 95,text = "3) Press enter and watch your path get drawn!(blue = tree on path)", anchor = NW, font = "Arial 14")
-        #how to show images not in .gif form: https://stackoverflow.com/questions/27599311/tkinter-photoimage-doesnt-not-support-png-image
-        canvas.create_text(750, 435, text = "4) To make a new path, press 'c'!", anchor = NW)
-        imkey1 = Image.open("LeafKeyPt1.png")
-        data.imkey1 = ImageTk.PhotoImage(imkey1)
-        canvas.create_image(750, 460, image = data.imkey1, anchor = NW)
-        imkey2 = Image.open("LeafKeyPt2.png")
-        data.imkey2 = ImageTk.PhotoImage(imkey2)
-        canvas.create_image(990, 460, image = data.imkey2, anchor = NW)
         
         
         for dest in data.destinations:
@@ -490,8 +485,15 @@ def redrawAll(canvas, data):
             canvas.create_text(data.destinations[data.startEnd[0]].x,data.destinations[data.startEnd[0]].y, text = "start")
         if data.startEnd[1] != None:
             canvas.create_text(data.destinations[data.startEnd[1]].x, data.destinations[data.startEnd[1]].y, text = "end")
-           
-                
+        #how to show images not in .gif form: https://stackoverflow.com/questions/27599311/tkinter-photoimage-doesnt-not-support-png-image
+        count = 0
+        for leaf in data.trees:
+            leafIm = Image.open("LeafKey/"+leaf+".png")
+            leafIm = ImageTk.PhotoImage(leafIm)
+            data.leafImg.append(leafIm)
+            canvas.create_image(750+count*150, 460, image = leafIm, anchor = NW)
+            count +=1
+            
     
 
 ####################################
