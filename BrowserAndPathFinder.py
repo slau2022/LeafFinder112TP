@@ -357,7 +357,7 @@ def redrawAll(canvas, data):
     if data.browser:
         from PIL import Image, ImageTk
         canvas.create_rectangle(0,0,data.cWidth, 50, fill = "green")
-        canvas.create_text(data.cWidth/2, 25, text = "Leaf Finder | Search for Trees By different Categories | Click on a box and start typing!")
+        canvas.create_text(40, 25, text = "Leaf Finder | Search for Trees By different Categories | Click on a box and start typing! | Press Enter to Search! | Click on leaf to learn about it!", anchor = NW)
         canvas.create_rectangle(data.cWidth-200, 0, data.cWidth, data.cHeight, fill = "dark green")
     
         for button in data.browserButtons:
@@ -445,6 +445,15 @@ def redrawAll(canvas, data):
         canvas.create_text(750, 80, text = "2) Click on your start and end points", font = "Arial 14", anchor = NW)
         canvas.create_text(750, 95,text = "3) Press enter and watch your path get drawn!(blue = tree on path)", anchor = NW, font = "Arial 14")
         canvas.create_text(750, 435, text = "4) To make a new path, press 'c'!", anchor = NW)
+        
+        
+        canvas.create_text(750, 600, text = "Keyboard Reminders:", anchor = NW, font = "Arial 14 bold")
+        canvas.create_text(750, 615, text = "Press the 'enter' key to find path.", anchor = NW)
+        canvas.create_text(750, 630, text = "Press the 'c' key to clear the old path and find a new one!", anchor = NW)
+        canvas.create_text(750, 655, text = "To deselect a start or end point, reclick it!", anchor = NW)
+        canvas.create_text(750, 670, text = "To deselect a tree, reclick it!", anchor = NW)
+        canvas.create_text(750, 690, text = "General Reminder: Don't be alarmed if Leaf Finder starts loading... ", anchor = NW)
+        canvas.create_text(750,705, text = "it's just making sure you have the best path!", anchor = NW)
         
         for dest in data.destinations:
             point = data.destinations[dest]
