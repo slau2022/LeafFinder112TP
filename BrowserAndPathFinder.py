@@ -1,8 +1,6 @@
 from LeafAnalysis import *
 from tkinter import *
 from tkinter import filedialog
-from image_util import *
-from WIPFunctions import *
 from PIL import Image, ImageTk
 import string
 from tkinter import * 
@@ -38,7 +36,6 @@ def init(data):
     data.cWidth = 1250
     data.listNames = {}
     data.listPhotos = []
-    data.photo = PhotoImage(file = "2n2a8n.gif")
     data.families = True
     data.analyze = False
     data.upLeaf = None
@@ -97,10 +94,13 @@ def init(data):
         count +=1
     
     data.buttons.append(Button(750,110,25,100,"Back to Browser", "white"))
-        
+    
     #switching between mapfinder and browser
     data.browser = True
     data.map = False
+    
+    #preventing any more clicking after three 
+    data.stopClicking = False
     
 def mousePressed(event, data):
     # use event.x and event.y
@@ -309,7 +309,6 @@ def keyPressed(event, data):
         if event.keysym == "Return" and None not in data.startEnd and len(data.trees) != 0:
             # data.path = findPath(data.startEnd[0], data.startEnd[1],data.trees)
             data.path = copy.copy(findPath(data.startEnd[0], data.startEnd[1],data.trees))
-            print(data.path)
         elif event.keysym == "c":
             data.path = []
             for button in data.buttons:

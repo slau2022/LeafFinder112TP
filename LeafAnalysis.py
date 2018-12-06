@@ -230,17 +230,4 @@ def findTreeState(state, dict = stateDict, dict2 = totalLeafDict):
     else:
         return "No tree found"
 
-## Fetch Generic Outline [NEEDS WORK]
-#function will return image of just outlines of an image
-def findOutLines(img):
-    window_name = "Images"
-    image = cv2.imread("leafdemo.jpg") #leafdemo is placeholder
-    edges = cv2.Canny(image, 200,500)
-    # Error checking to make sure that our image actually loaded properly
-    if image is not None:
-        # Display our loaded image in a window with window_name
-        cv2.imshow(window_name, edges)
-        # Wait for any key to be pressed
-        cv2.waitKey(0)
-    return edges
 
