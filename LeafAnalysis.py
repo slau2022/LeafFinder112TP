@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 import requests
 from bs4 import BeautifulSoup
@@ -8,6 +7,8 @@ from tkinter import *
 import os
 from sklearn.cluster import KMeans
 from urllib import *
+
+#browser functions
 
 ## Webscraping Leaf Types Information
 # """How to webscrape by class:https://codeburst.io/web-scraping-101-with-python-beautiful-soup-bb617be1f486"""

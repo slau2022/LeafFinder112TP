@@ -7,6 +7,7 @@ from tkinter import *
 import math
 from TryingToGetRidOfAliasing import *
 
+#main file combining the browser and path pages
         
 class Button(object):
     def __init__(self, x, y, h,width, text, color):
@@ -68,6 +69,8 @@ def init(data):
     
     #pathfinderstuff
     data.img = None
+    data.imkey1 = None
+    data.imkey2 = None
     data.points = [(40,70), (140,60),(550,60), (660,70), (40,265), (80, 265),(280, 210), \
     (300, 110), (300, 190),(350,140),(400, 110), (400,190), (440, 110), (440, 210), (550, 210), \
     (440, 250),(580,280),(660,270),(350,300),(230,390),(40,485),(80,485),(170,455),(450,400),\
@@ -93,7 +96,7 @@ def init(data):
         data.buttons.append(Button(x,150+25*count,25,100,tree,"white"))
         count +=1
     
-    data.buttons.append(Button(750,110,25,100,"Back to Browser", "white"))
+    data.buttons.append(Button(750,115,25,100,"Back to Browser", "white"))
     
     #switching between mapfinder and browser
     data.browser = True
@@ -101,6 +104,7 @@ def init(data):
     
     #preventing any more clicking after three 
     data.stopClicking = False
+    data.stopEverything = False
     
 def mousePressed(event, data):
     # use event.x and event.y
@@ -191,14 +195,24 @@ def mousePressed(event, data):
                     data.map = False
                     data.browser = True
                 else:
-                    if button.color=="gray":
-                        button.color = "white"
-                        data.trees.remove(button.text)
-                    elif button.color == "white":
-                        button.color = "gray"
-                        data.trees.add(button.text)
+                    if not data.stopEverything:
+                        if not data.stopClicking:
+                            if button.color=="gray":
+                                button.color = "white"
+                                data.trees.remove(button.text)
+                            elif button.color == "white":
+                                button.color = "gray"
+                                data.trees.add(button.text)
+                        else:
+                            if button.text in data.trees:
+                                if button.color=="gray":
+                                    button.color = "white"
+                                    data.trees.remove(button.text)
+                                    data.stopClicking = False
         
-        
+        if len(data.trees)>2:
+            data.stopClicking = True
+            
 def keyPressed(event, data):
     if data.browser:
         if event.keysym in string.ascii_letters:
@@ -306,18 +320,31 @@ def keyPressed(event, data):
             elif data.searchState:
                 data.state += " "
     elif data.map:
-        if event.keysym == "Return" and None not in data.startEnd and len(data.trees) != 0:
-            # data.path = findPath(data.startEnd[0], data.startEnd[1],data.trees)
-            data.path = copy.copy(findPath(data.startEnd[0], data.startEnd[1],data.trees))
-        elif event.keysym == "c":
-            data.path = []
-            for button in data.buttons:
-                button.color = "white"
-            for dest in data.destinations:
-                data.destinations[dest].color = "blue"
-            data.startEnd = [None, None]
-            data.trees = set()
-            data.countRed = 0
+        if not data.stopEverything:
+            if event.keysym == "Return" and None not in data.startEnd and len(data.trees) != 0:
+                # data.path = findPath(data.startEnd[0], data.startEnd[1],data.trees)
+                data.path = copy.copy(findPath(data.startEnd[0], data.startEnd[1],data.trees))
+                data.stopEverything = True
+            elif event.keysym == "c":
+                data.path = []
+                for button in data.buttons:
+                    button.color = "white"
+                for dest in data.destinations:
+                    data.destinations[dest].color = "blue"
+                data.startEnd = [None, None]
+                data.trees = set()
+                data.countRed = 0
+        else:
+            if event.keysym == "c":
+                data.stopEverything = False
+                data.path = []
+                for button in data.buttons:
+                    button.color = "white"
+                for dest in data.destinations:
+                    data.destinations[dest].color = "blue"
+                data.startEnd = [None, None]
+                data.trees = set()
+                data.countRed = 0
 
 def timerFired(data):
     pass
@@ -326,7 +353,7 @@ def redrawAll(canvas, data):
     if data.browser:
         from PIL import Image, ImageTk
         canvas.create_rectangle(0,0,data.cWidth, 50, fill = "green")
-        canvas.create_text(data.cWidth/2, 25, text = "Leaf Finder")
+        canvas.create_text(data.cWidth/2, 25, text = "Leaf Finder | Search for Trees By different Categories | Click on a box and start typing!")
         canvas.create_rectangle(data.cWidth-200, 0, data.cWidth, data.cHeight, fill = "dark green")
     
         for button in data.browserButtons:
@@ -412,8 +439,17 @@ def redrawAll(canvas, data):
         canvas.create_text(750, 20, text = "Plan Your Walk!", font = "Arial 36", anchor = NW)
         canvas.create_text(750, 65, text = "1) Choose 1-3 trees you'd like to see on your walk", font = "Arial 14", anchor = NW)
         canvas.create_text(750, 80, text = "2) Click on your start and end points", font = "Arial 14", anchor = NW)
-        canvas.create_text(750, 95,text = "3) Press enter and watch your path get drawn!", anchor = NW, font = "Arial 14")
-    
+        canvas.create_text(750, 95,text = "3) Press enter and watch your path get drawn!(blue = tree on path)", anchor = NW, font = "Arial 14")
+        #how to show images not in .gif form: https://stackoverflow.com/questions/27599311/tkinter-photoimage-doesnt-not-support-png-image
+        canvas.create_text(750, 435, text = "4) To make a new path, press 'c'!", anchor = NW)
+        imkey1 = Image.open("LeafKeyPt1.png")
+        data.imkey1 = ImageTk.PhotoImage(imkey1)
+        canvas.create_image(750, 460, image = data.imkey1, anchor = NW)
+        imkey2 = Image.open("LeafKeyPt2.png")
+        data.imkey2 = ImageTk.PhotoImage(imkey2)
+        canvas.create_image(990, 460, image = data.imkey2, anchor = NW)
+        
+        
         for dest in data.destinations:
             point = data.destinations[dest]
             canvas.create_oval(point.x, point.y, point.x+20, point.y+20, fill = point.color)
@@ -421,7 +457,8 @@ def redrawAll(canvas, data):
         for button in data.buttons:
             canvas.create_rectangle(button.x,button.y,button.x+button.width,button.y+button.height, fill = button.color)
             canvas.create_text(button.x+button.width/2, button.y+button.height/2, text = button.text, font = "Arial 8")
-        # draw in canvas
+        
+        
         
         line = [None, None]
         if data.path != None:
@@ -448,8 +485,13 @@ def redrawAll(canvas, data):
                     
                         canvas.create_line(highlightline[0][0]+10, highlightline[0][1]+10, highlightline[1][0]+10, highlightline[1][1]+10, fill = "cyan", width = 5)
                     
-        
-
+        # print(data.startEnd)
+        if data.startEnd[0] != None:
+            canvas.create_text(data.destinations[data.startEnd[0]].x,data.destinations[data.startEnd[0]].y, text = "start")
+        if data.startEnd[1] != None:
+            canvas.create_text(data.destinations[data.startEnd[1]].x, data.destinations[data.startEnd[1]].y, text = "end")
+           
+                
     
 
 ####################################
