@@ -91,7 +91,6 @@ def keyPressed(event, data):
     if event.keysym == "Return" and None not in data.startEnd and len(data.trees) != 0:
         # data.path = findPath(data.startEnd[0], data.startEnd[1],data.trees)
         data.path = copy.copy(findPath(data.startEnd[0], data.startEnd[1],data.trees))
-        print(data.path)
     elif event.keysym == "c":
         data.path = []
         for button in data.buttons:

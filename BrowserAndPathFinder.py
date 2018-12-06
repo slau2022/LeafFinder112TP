@@ -62,10 +62,10 @@ def init(data):
     
     data.browserButtons = []
     
-    data.browserButtons.append(Button(data.cWidth-200+50, 25, 25, 100, "Search by Common Family", "gray"))
-    data.browserButtons.append(Button(data.cWidth-200+50, 85, 25, 100, "Search by Scientific Name", "gray"))
-    data.browserButtons.append(Button(data.cWidth-200+50, 145, 25, 100, "Search by Common Name", "gray"))
-    data.browserButtons.append(Button(data.cWidth-200+50, 205, 25,100,"Search by State", "gray" ))
+    data.browserButtons.append(Button(data.cWidth-200+50, 25, 50, 100, "Search by Common Family", "gray"))
+    data.browserButtons.append(Button(data.cWidth-200+50, 85, 50, 100, "Search by Scientific Name", "gray"))
+    data.browserButtons.append(Button(data.cWidth-200+50, 145, 50, 100, "Search by Common Name", "gray"))
+    data.browserButtons.append(Button(data.cWidth-200+50, 205, 50,100,"Search by State", "gray" ))
     data.browserButtons.append(Button(data.cWidth-200+50,265,25,100, "Go To Map", "white"))
     
     
@@ -111,7 +111,7 @@ def mousePressed(event, data):
             x,ylim = data.photoCoords[key]
             if event.x > x and event.x <x+125 and event.y>ylim and event.y<ylim+150:
                 data.notes = leafDescrip(key)
-                data.reformNotes = key+"\n"
+                data.reformNotes = "\n"+key
                 count =0
                 for c in data.notes:
                     if count%21 == 0:
@@ -217,10 +217,12 @@ def keyPressed(event, data):
                 data.listPhotos = []
                 maybeList = findTreeImages(data.drawSearch)
                 if type(maybeList) == str:
+                    data.listNames = []
                     data.notFound = True
                     data.families = False
                     data.analyze = False
                 elif type(maybeList) == dict:
+                    data.notes = ""
                     data.drawSearch = ""
                     data.listNames = maybeList
                     data.families = True
@@ -232,13 +234,15 @@ def keyPressed(event, data):
                 data.listPhotos = []
                 maybeList = findTreeSci(data.drawSciSearch)
                 if type(maybeList) == str:
+                    data.listNames = []
                     data.notFound = True
                     data.families = False
                     data.analyze = False
                 elif type(maybeList) == dict:
-                    data.searchSci = ""
+                    data.notes = ""
+                    data.drawSciSearch = ""
                     data.listNames = maybeList
-                    
+
                     data.families = True
                     data.analyze = False
                     data.notFound = False
@@ -248,10 +252,12 @@ def keyPressed(event, data):
                 data.listPhotos = []
                 maybeList = findSpecies(data.comNameSearch)
                 if type(maybeList) == str:
+                    data.listNames = []
                     data.notFound = True
                     data.families = False
                     data.analyze = False
                 elif type(maybeList) == dict:
+                    data.notes = ""
                     data.comNameSearch = ""
                     data.listNames = maybeList
                     
@@ -264,12 +270,14 @@ def keyPressed(event, data):
                 data.reformNotes = ""
                 maybeList = findTreeState(data.state)
                 if type(maybeList) == str:
+                    data.listNames = []
                     data.notFound = True
                     data.families = False
                     data.analyze = False
                 elif type(maybeList) == dict:
+                    data.notes = ""
                     data.stateDescrip = "Trees found in "+ data.state
-                    
+                    data.state = ""
                     data.comNameSearch = ""
                     data.listNames = maybeList
                     
@@ -317,13 +325,17 @@ def timerFired(data):
 
 def redrawAll(canvas, data):
     if data.browser:
+        from PIL import Image, ImageTk
         canvas.create_rectangle(0,0,data.cWidth, 50, fill = "green")
         canvas.create_text(data.cWidth/2, 25, text = "Leaf Finder")
         canvas.create_rectangle(data.cWidth-200, 0, data.cWidth, data.cHeight, fill = "dark green")
     
         for button in data.browserButtons:
             canvas.create_rectangle(button.x,button.y,button.x+button.width,button.y+button.height, fill = button.color)
-            canvas.create_text(button.x+button.width/2, button.y+button.height/2, text = button.text, font = "Arial 8")
+            if button.text == "Go To Map":
+                canvas.create_text(button.x+button.width/2, button.y+button.height/2, text = button.text, font = "Arial 8")
+            else:
+                canvas.create_text(button.x+button.width/2, button.y+button.height/4, text = button.text, font = "Arial 8")
         
         #search common family white space
         canvas.create_rectangle(data.cWidth-200+50, 50,data.cWidth-200+50+100, 75, fill = "white" )
@@ -467,6 +479,7 @@ def run(width=300, height=300):
     data.width = width
     data.height = height
     root = Tk()
+    root.title("Leaf Finder")
     root.resizable(width=False, height=False) # prevents resizing window
     init(data)
     # create the root and the canvas
