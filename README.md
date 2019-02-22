@@ -1,5 +1,7 @@
 # Leaf Finder
 
+![image](https://raw.githubusercontent.com/slau2022/LeafFinder112TP/master/READMEImage2.png)<br>
+![image](https://raw.githubusercontent.com/slau2022/LeafFinder112TP/master/READMEImage1.png)<br>
 
 ## Description
 
